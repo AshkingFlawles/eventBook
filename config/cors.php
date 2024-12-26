@@ -15,29 +15,13 @@ return [
     |
     */
 
-    // 'paths' => ['api/*', 'sanctum/csrf-cookie'],
-
-    // 'allowed_methods' => ['*'],
-
-    // 'allowed_origins' => ['*'],
-
-    // 'allowed_origins_patterns' => [],
-
-    // 'allowed_headers' => ['*'],
-
-    // 'exposed_headers' => [],
-
-    // 'max_age' => 0,
-
-    // 'supports_credentials' => false,
-
-    'paths' => ['api/*', 'testreg'], // Ensure your registration route is included
-    'allowed_methods' => ['*'], // Allow all methods
-    'allowed_origins' => ['*'], // Allow all origins or specify http://localhost:5173
-    'allowed_origins_patterns' => [],
-    'allowed_headers' => ['*'], // Allow all headers
-    'exposed_headers' => [],
-    'max_age' => 0,
-    'supports_credentials' => false,
+    'paths' => ['api/*', 'sanctum/csrf-cookie'], // Define the paths that should be CORS-enabled
+    'allowed_methods' => ['*'], // Allow all HTTP methods (GET, POST, etc.)
+    'allowed_origins' => ['http://localhost:5173'], // Allow requests from this specific origin
+    'allowed_origins_patterns' => [], // Patterns for allowed origins (not used here)
+    'allowed_headers' => ['*'], // Allow all headers in requests
+    'exposed_headers' => [], // Headers that can be exposed to the browser
+    'max_age' => 0, // Maximum age for preflight requests
+    'supports_credentials' => true, // Indicates whether the browser should include credentials (cookies, authorization headers, etc.)
 
 ];
