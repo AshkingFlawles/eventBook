@@ -15,8 +15,19 @@
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
 
-    <!-- Scripts -->
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    <!-- Favicons -->
+    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/favico.js/0.3.10/favico.ico" sizes="any">
+    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/favico.js/0.3.10/favico-32x32.png" type="image/png" sizes="32x32">
+    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/favico.js/0.3.10/favico-16x16.png" type="image/png" sizes="16x16">
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Fix favicon 404 by using CDN -->
+    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/favico.js/0.3.10/favico.ico" sizes="any" />
+    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/favico.js/0.3.10/favico-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/favico.js/0.3.10/favico-16x16.png" sizes="16x16" type="image/png" />
+
 </head>
 <body>
     <div id="app">
