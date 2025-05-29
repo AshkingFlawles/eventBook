@@ -45,6 +45,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'http://127.0.0.1:8000', // proxy requests to Laravel API
+      '/testreg': 'http://localhost:8000', // Add this line
+      '/sanctum/csrf-cookie': 'http://localhost:8000', 
     },
   },
 });
