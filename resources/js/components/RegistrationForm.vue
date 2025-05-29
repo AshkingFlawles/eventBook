@@ -42,8 +42,15 @@ export default {
     async register() {
       try {
         // Send registration data to the server
-        const response = await this.$axios.post('/api/testreg', this.form);
+        const response = await this.$axios.post('/api/testreg', this.form, {
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  }
+});
+
         console.log('Registration successful:', response.data);
+        //redirect to login
         this.errors = []; // Clear errors on successful registration
       } catch (error) {
         // Handle registration errors

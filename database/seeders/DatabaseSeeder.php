@@ -7,6 +7,8 @@ use App\Models\Venue;
 use App\Models\Event;
 use App\Models\Booking;
 use App\Models\User;
+Use App\Models\UserTest;
+
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,5 +21,8 @@ class DatabaseSeeder extends Seeder
         Venue::factory(10)->create();
         Event::factory(30)->create();
         Booking::factory(100)->create();
+        $this->call([
+            UserTestSeeder::class,
+        ]);
     }
 }

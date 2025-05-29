@@ -25,7 +25,7 @@
 // import Calendar from './components/Calendar.vue';
 
 
-// createApp(RegisterForm).mount('#app');
+
 // createApp(Calendar).mount('#calendar-app');
 
 // app.config.globalProperties.$axios = axios;
@@ -86,11 +86,13 @@ import axios from 'axios';
 import { createApp } from 'vue';
 import RegisterForm from './components/RegistrationForm.vue';
 import Calendar from './components/Calendar.vue';
+import ImageUploader from './components/ImageUploader.vue';
+import FileUploader from './components/FileUploader.vue';
 
-// Configure axios with the base URL from environment
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-axios.defaults.withCredentials = true;
-axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+// Add these missing imports
+import AdminRegisterForm from './components/AdminRegisterForm.vue';
+import Login from './components/Login.vue';
+import Dashboard from './components/Dashboard.vue';
 
 // Get CSRF token
 const token = document.head.querySelector('meta[name="csrf-token"]');
@@ -100,23 +102,61 @@ if (token) {
     console.error('CSRF token not found');
 }
 
+// Define the axios plugin
 const axiosPlugin = {
     install(app) {
         app.config.globalProperties.$axios = axios;
     }
 };
 
-// Initialize CSRF protection
-axios.get('/sanctum/csrf-cookie').then(() => {
-    const app = createApp(RegisterForm);
-    app.use(axiosPlugin);
-    app.mount('#app');
+// Register global components for all apps
+const registerGlobalComponents = (app) => {
+    app.component('ImageUploader', ImageUploader);
+    app.component('FileUploader', FileUploader);
+};
 
-    if (document.querySelector('#calendar-app')) {
-        const calendarApp = createApp(Calendar);
-        calendarApp.use(axiosPlugin);
-        calendarApp.mount('#calendar-app');
+// Function to safely mount components
+const mountComponent = (selector, component) => {
+    const element = document.querySelector(selector);
+    if (element) {
+        const app = createApp(component);
+        app.use(axiosPlugin);
+        registerGlobalComponents(app);
+        app.mount(selector);
+        return app;
     }
-}).catch(error => {
-    console.error('Failed to initialize CSRF protection:', error);
-});
+    return null;
+};
+
+// Initialize apps after CSRF cookie is set (or skip if not using Sanctum SPA)
+const initializeApps = () => {
+    // Mount RegisterForm
+    mountComponent('#app', RegisterForm);
+    
+    // Mount AdminRegisterForm
+    mountComponent('#app_admin_register', AdminRegisterForm);
+    
+    // Mount Calendar
+    mountComponent('#calendar-app', Calendar);
+    
+    // Mount Login
+    mountComponent('#loginapp', Login);
+    
+    // Mount Dashboard
+    mountComponent('#dashboard', Dashboard);
+};
+
+// If you're using Sanctum SPA authentication, get CSRF cookie first
+// Otherwise, just initialize the apps directly
+if (document.querySelector('meta[name="sanctum-spa"]')) {
+    axios.get('/sanctum/csrf-cookie').then(() => {
+        initializeApps();
+    }).catch(error => {
+        console.error('Failed to initialize CSRF protection:', error);
+        // Initialize apps anyway if CSRF fails
+        initializeApps();
+    });
+} else {
+    // For regular Laravel apps, initialize directly
+    initializeApps();
+}

@@ -2,75 +2,60 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Event;
+use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
+    // Display a listing of events
     public function index()
-{
-    $events = Event::all();
-    return view('events.index', compact('events'));
-}
-
-public function create()
-{
-    $venues = Venue::all();
-    return view('events.create', compact('venues'));
-}
-
-public function store(Request $request)
-{
-    $request->validate([
-        'venue_id' => 'required',
-        'title' => 'required',
-        'description' => 'required',
-        'start_time' => 'required|date',
-        'end_time' => 'required|date',
-        'is_ticketed' => 'required|boolean',
-    ]);
-
-    Event::create($request->all());
-    return redirect()->route('events.index');
-}
-
-public function show(Event $event)
-{
-    return view('events.show', compact('event'));
-}
-
-public function edit(Event $event)
-{
-    $venues = Venue::all();
-    return view('events.edit', compact('event', 'venues'));
-}
-
-public function update(Request $request, Event $event)
-{
-    $request->validate([
-        'venue_id' => 'required',
-        'title' => 'required',
-        'description' => 'required',
-        'start_time' => 'required|date',
-        'end_time' => 'required|date',
-        'is_ticketed' => 'required|boolean',
-    ]);
-
-    $event->update($request->all());
-    return redirect()->route('events.index');
-}
-
-public function destroy(Event $event)
-{
-    $event->delete();
-    return redirect()->route('events.index');
-}
-
-//full call test
-public function getEvents()
     {
-        $events = Event::all();
-        return response()->json($events);
+        // Optionally eager load venue relationship if exists
+        return response()->json(Event::with('venue')->get());
     }
 
+    // Store a newly created event
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date',
+            'venue_id' => 'required|exists:venues,id',
+        ]);
+
+        $event = Event::create($validated);
+        return response()->json($event, 201);
+    }
+
+    // Display the specified event
+    public function show($id)
+    {
+        $event = Event::with('venue')->findOrFail($id);
+        return response()->json($event);
+    }
+
+    // Update the specified event
+    public function update(Request $request, $id)
+    {
+        $event = Event::findOrFail($id);
+
+        $validated = $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'start_time' => 'sometimes|required|date',
+            'venue_id' => 'sometimes|required|exists:venues,id',
+        ]);
+
+        $event->update($validated);
+        return response()->json($event);
+    }
+
+    // Remove the specified event
+    public function destroy($id)
+    {
+        $event = Event::findOrFail($id);
+        $event->delete();
+        return response()->json(null, 204);
+    }
 }
