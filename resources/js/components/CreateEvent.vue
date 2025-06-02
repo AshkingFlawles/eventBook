@@ -33,6 +33,7 @@
           v-model="event.event_type" 
           class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
           required
+          @change="updateEventTypeFields"
         >
           <option disabled value="">Please select</option>
           <option value="wedding">Wedding</option>
@@ -47,17 +48,26 @@
           <option value="other">Other</option>
         </select>
       </label>
-      
-      <!-- Custom event type -->
-      <label v-if="event.event_type === 'other'" class="block">
-        <span class="text-gray-700 font-semibold">Custom Event Type</span>
-        <input 
-          v-model="event.custom_event_type" 
-          type="text" 
-          class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" 
-          required
-        />
-      </label>
+
+      <!-- Event type specific fields -->
+      <div v-if="event.event_type" class="mt-4 p-4 bg-gray-50 rounded">
+        <h3 class="text-lg font-semibold mb-4">Event Details</h3>
+
+        <!-- Get the current event type's fields -->
+        <div v-if="event.event_type_specific_fields[event.event_type]" class="space-y-4">
+          <template v-for="(field, fieldName) in event.event_type_specific_fields[event.event_type]" :key="fieldName">
+            <label class="block" v-if="field !== null && field !== undefined">
+              <span class="text-gray-700 font-semibold">{{ fieldName.replace('_', ' ').replace(/\w+/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()) }}</span>
+              <input 
+                v-model="event.event_type_specific_fields[event.event_type][fieldName]" 
+                :type="fieldName.includes('date') ? 'date' : fieldName.includes('number') ? 'number' : 'text'" 
+                class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" 
+                :required="eventTypeRequirements[event.event_type]?.required.includes(fieldName)"
+              />
+            </label>
+          </template>
+        </div>
+      </div>
 
       <!-- Date and Time inputs -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -165,21 +175,6 @@
             <span class="text-gray-700 font-medium">Catering Required</span>
           </label>
           <label class="flex items-center space-x-2">
-            <input type="checkbox" v-model="event.decoration_required" class="rounded" />
-            <i class="fas fa-paint-roller fa-lg text-blue-600"></i>
-            <span class="text-gray-700 font-medium">Decoration Required</span>
-          </label>
-          <label class="flex items-center space-x-2">
-            <input type="checkbox" v-model="event.sound_system_required" class="rounded" />
-            <i class="fas fa-volume-up fa-lg text-blue-600"></i>
-            <span class="text-gray-700 font-medium">Sound System Required</span>
-          </label>
-          <label class="flex items-center space-x-2">
-            <input type="checkbox" v-model="event.photography_required" class="rounded" />
-            <i class="fas fa-camera fa-lg text-blue-600"></i>
-            <span class="text-gray-700 font-medium">Photography Required</span>
-          </label>
-          <label class="flex items-center space-x-2">
             <input type="checkbox" v-model="event.security_required" class="rounded" />
             <i class="fas fa-shield-alt fa-lg text-blue-600"></i>
             <span class="text-gray-700 font-medium">Security Required</span>
@@ -189,6 +184,188 @@
             <i class="fas fa-parking fa-lg text-blue-600"></i>
             <span class="text-gray-700 font-medium">Parking Required</span>
           </label>
+          <label class="flex items-center space-x-2">
+            <input type="checkbox" v-model="event.entertainment_required" class="rounded" />
+            <i class="fas fa-music fa-lg text-blue-600"></i>
+            <span class="text-gray-700 font-medium">Entertainment Required</span>
+          </label>
+          <label class="flex items-center space-x-2">
+            <input type="checkbox" v-model="event.audio_visual_required" class="rounded" />
+            <i class="fas fa-video fa-lg text-blue-600"></i>
+            <span class="text-gray-700 font-medium">Audio/Visual Required</span>
+          </label>
+          <label class="flex items-center space-x-2">
+            <input type="checkbox" v-model="event.decoration_required" class="rounded" />
+            <i class="fas fa-paint-brush fa-lg text-blue-600"></i>
+            <span class="text-gray-700 font-medium">Decoration Required</span>
+          </label>
+        </div>
+
+        <!-- Catering Options -->
+        <div v-if="event.catering_required" class="mt-4 p-4 bg-gray-50 rounded">
+          <h3 class="text-lg font-semibold mb-4">Catering Details</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Catering Type</span>
+              <select v-model="event.catering_type" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                <option value="buffet">Buffet</option>
+                <option value="sit_down">Sit Down Dinner</option>
+                <option value="cocktail">Cocktail Reception</option>
+                <option value="custom">Custom Menu</option>
+              </select>
+            </label>
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Menu Preferences</span>
+              <select v-model="event.menu_preferences" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                <option value="vegetarian">Vegetarian</option>
+                <option value="vegan">Vegan</option>
+                <option value="gluten_free">Gluten Free</option>
+                <option value="halal">Halal</option>
+                <option value="kosher">Kosher</option>
+                <option value="regular">Regular</option>
+              </select>
+            </label>
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Number of Guests</span>
+              <input 
+                v-model.number="event.catering_guest_count" 
+                type="number" 
+                class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" 
+                required
+              />
+            </label>
+          </div>
+        </div>
+
+        <!-- Security Options -->
+        <div v-if="event.security_required" class="mt-4 p-4 bg-gray-50 rounded">
+          <h3 class="text-lg font-semibold mb-4">Security Details</h3>
+          <div class="space-y-4">
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Number of Security Personnel</span>
+              <input 
+                v-model.number="event.security_personnel_count" 
+                type="number" 
+                class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" 
+                required
+              />
+            </label>
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Special Security Needs</span>
+              <textarea 
+                v-model="event.security_special_needs" 
+                rows="3"
+                class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              ></textarea>
+            </label>
+          </div>
+        </div>
+
+        <!-- Parking Options -->
+        <div v-if="event.parking_required" class="mt-4 p-4 bg-gray-50 rounded">
+          <h3 class="text-lg font-semibold mb-4">Parking Details</h3>
+          <div class="space-y-4">
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Estimated Number of Vehicles</span>
+              <input 
+                v-model.number="event.parking_vehicle_count" 
+                type="number" 
+                class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" 
+                required
+              />
+            </label>
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Special Parking Requirements</span>
+              <textarea 
+                v-model="event.parking_special_requirements" 
+                rows="3"
+                class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              ></textarea>
+            </label>
+          </div>
+        </div>
+
+        <!-- Entertainment Options -->
+        <div v-if="event.entertainment_required" class="mt-4 p-4 bg-gray-50 rounded">
+          <h3 class="text-lg font-semibold mb-4">Entertainment Details</h3>
+          <div class="space-y-4">
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Type of Entertainment</span>
+              <select v-model="event.entertainment_type" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                <option value="live_band">Live Band</option>
+                <option value="dj">DJ</option>
+                <option value="magician">Magician</option>
+                <option value="dancers">Dancers</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Special Entertainment Requests</span>
+              <textarea 
+                v-model="event.entertainment_requests" 
+                rows="3"
+                class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              ></textarea>
+            </label>
+          </div>
+        </div>
+
+        <!-- Audio/Visual Options -->
+        <div v-if="event.audio_visual_required" class="mt-4 p-4 bg-gray-50 rounded">
+          <h3 class="text-lg font-semibold mb-4">Audio/Visual Details</h3>
+          <div class="space-y-4">
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Required Equipment</span>
+              <select v-model="event.av_equipment" multiple class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                <option value="microphones">Microphones</option>
+                <option value="speakers">Speakers</option>
+                <option value="projector">Projector</option>
+                <option value="sound_system">Sound System</option>
+                <option value="lighting">Lighting</option>
+              </select>
+            </label>
+            <label class="block">
+              <span class="text-gray-700 font-semibold">AV Technical Requirements</span>
+              <textarea 
+                v-model="event.av_technical_requirements" 
+                rows="3"
+                class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              ></textarea>
+            </label>
+          </div>
+        </div>
+
+        <!-- Decoration Options -->
+        <div v-if="event.decoration_required" class="mt-4 p-4 bg-gray-50 rounded">
+          <h3 class="text-lg font-semibold mb-4">Decoration Details</h3>
+          <div class="space-y-4">
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Decoration Style</span>
+              <select v-model="event.decoration_style" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                <option value="elegant">Elegant</option>
+                <option value="modern">Modern</option>
+                <option value="rustic">Rustic</option>
+                <option value="themed">Themed</option>
+                <option value="minimalist">Minimalist</option>
+              </select>
+            </label>
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Color Scheme</span>
+              <input 
+                v-model="event.decoration_color_scheme" 
+                type="color" 
+                class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" 
+              />
+            </label>
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Special Decor Requests</span>
+              <textarea 
+                v-model="event.decoration_special_requests" 
+                rows="3"
+                class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              ></textarea>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -257,36 +434,201 @@ export default {
   data() {
     return {
       isSubmitting: false,
-      venues: [], // Will be populated from API
       event: {
         name: '',
         description: '',
         event_type: '',
-        custom_event_type: '',
         start_date: '',
-        start_time: '',
         end_date: '',
+        start_time: '',
         end_time: '',
         venue_id: '',
-        expected_attendees: null,
-        budget: null,
-        status: 'draft',
+        venue: '',
+        capacity: '',
         catering_required: false,
-        decoration_required: false,
-        sound_system_required: false,
-        photography_required: false,
+        catering_type: '',
+        menu_preferences: '',
+        catering_guest_count: '',
         security_required: false,
+        security_personnel_count: '',
+        security_special_needs: '',
         parking_required: false,
+        parking_vehicle_count: '',
+        parking_special_requirements: '',
+        entertainment_required: false,
+        entertainment_type: '',
+        entertainment_requests: '',
+        audio_visual_required: false,
+        av_equipment: [],
+        av_technical_requirements: '',
+        decoration_required: false,
+        decoration_style: '',
+        decoration_color_scheme: '#ffffff',
+        decoration_special_requests: '',
         special_instructions: '',
         contact_email: '',
         contact_phone: '',
         is_public: false,
-        organizer_id: null // Set this dynamically if needed
+        event_type_specific_fields: {
+          wedding: {
+            bride_name: '',
+            groom_name: '',
+            guest_list: '',
+            catering: '',
+            entertainment: '',
+            photography: '',
+            videography: '',
+            music_band: '',
+            wedding_theme: ''
+          },
+          birthday: {
+            child_age: '',
+            theme: '',
+            guest_age_range: '',
+            entertainment: '',
+            cake_design: '',
+            party_favors: '',
+            balloon_decor: ''
+          },
+          corporate: {
+            company_name: '',
+            department: '',
+            purpose: '',
+            attendees_profile: '',
+            speakers: '',
+            presentation_materials: '',
+            catering: '',
+            parking_requirements: ''
+          },
+          conference: {
+            topics: '',
+            keynote_speakers: '',
+            registration_fee: '',
+            accommodation: '',
+            workshop_sessions: '',
+            exhibition_space: '',
+            networking_events: ''
+          },
+          workshop: {
+            trainer: '',
+            topics: '',
+            materials_required: '',
+            prerequisites: '',
+            certification: '',
+            practical_sessions: '',
+            assessment: ''
+          },
+          concert: {
+            artist: '',
+            genre: '',
+            ticket_price: '',
+            stage_requirements: '',
+            sound_system: '',
+            lighting: '',
+            backstage_requirements: '',
+            security: ''
+          },
+          exhibition: {
+            exhibitors: '',
+            categories: '',
+            entry_fee: '',
+            special_requirements: '',
+            workshops: '',
+            demonstrations: '',
+            networking_sessions: ''
+          },
+          graduation: {
+            institution: '',
+            degree_level: '',
+            number_of_graduates: '',
+            guest_speakers: '',
+            ceremony_format: '',
+            photography: ''
+          },
+          anniversary: {
+            years: '',
+            celebration_type: '',
+            guest_list: '',
+            entertainment: '',
+            catering: '',
+            special_decor: ''
+          },
+          other: {
+            event_description: '',
+            expected_attendees: ''
+          }
+        }
       },
-      message: ''
+      venues: [],
+      message: '',
+      eventTypes: [
+        { value: 'wedding', text: 'Wedding' },
+        { value: 'birthday', text: 'Birthday' },
+        { value: 'corporate', text: 'Corporate' },
+        { value: 'conference', text: 'Conference' },
+        { value: 'workshop', text: 'Workshop' },
+        { value: 'concert', text: 'Concert' },
+        { value: 'exhibition', text: 'Exhibition' },
+        { value: 'graduation', text: 'Graduation' },
+        { value: 'anniversary', text: 'Anniversary' },
+        { value: 'other', text: 'Other' }
+      ],
+      eventTypeRequirements: {
+        wedding: {
+          required: ['bride_name', 'groom_name', 'guest_list', 'catering'],
+          optional: ['entertainment', 'photography', 'videography', 'music_band', 'wedding_theme']
+        },
+        birthday: {
+          required: ['child_age', 'theme', 'guest_age_range'],
+          optional: ['entertainment', 'cake_design', 'party_favors', 'balloon_decor']
+        },
+        corporate: {
+          required: ['company_name', 'department', 'purpose', 'attendees_profile'],
+          optional: ['speakers', 'presentation_materials', 'catering', 'parking_requirements']
+        },
+        conference: {
+          required: ['topics', 'keynote_speakers', 'registration_fee', 'accommodation'],
+          optional: ['workshop_sessions', 'exhibition_space', 'networking_events']
+        },
+        workshop: {
+          required: ['trainer', 'topics', 'materials_required', 'prerequisites'],
+          optional: ['certification', 'practical_sessions', 'assessment']
+        },
+        concert: {
+          required: ['artist', 'genre', 'ticket_price', 'stage_requirements'],
+          optional: ['sound_system', 'lighting', 'backstage_requirements', 'security']
+        },
+        exhibition: {
+          required: ['exhibitors', 'categories', 'entry_fee', 'special_requirements'],
+          optional: ['workshops', 'demonstrations', 'networking_sessions']
+        },
+        graduation: {
+          required: ['institution', 'degree_level', 'number_of_graduates'],
+          optional: ['guest_speakers', 'ceremony_format', 'photography']
+        },
+        anniversary: {
+          required: ['years', 'celebration_type', 'guest_list'],
+          optional: ['entertainment', 'catering', 'special_decor']
+        },
+        other: {
+          required: ['event_description', 'expected_attendees'],
+          optional: []
+        }
+      }
     };
   },
   computed: {
+    // Get required fields based on event type
+    getRequiredFields() {
+      if (!this.event.event_type) return [];
+      return this.eventTypeRequirements[this.event.event_type]?.required || [];
+    },
+
+    // Get optional fields based on event type
+    getOptionalFields() {
+      if (!this.event.event_type) return [];
+      return this.eventTypeRequirements[this.event.event_type]?.optional || [];
+    },
     messageClass() {
       return this.message.toLowerCase().includes('error')
         ? 'bg-red-100 text-red-700 border border-red-300'
@@ -297,6 +639,27 @@ export default {
     await this.loadVenues();
   },
   methods: {
+    // Update event type specific fields when event type changes
+    updateEventTypeFields() {
+      // Reset all event type specific fields
+      Object.keys(this.event.event_type_specific_fields).forEach(type => {
+        if (typeof this.event.event_type_specific_fields[type] === 'object') {
+          Object.keys(this.event.event_type_specific_fields[type]).forEach(field => {
+            this.event.event_type_specific_fields[type][field] = '';
+          });
+        }
+      });
+
+      // Initialize fields for selected event type
+      if (this.event.event_type) {
+        const eventType = this.event.event_type_specific_fields[this.event.event_type];
+        if (eventType) {
+          Object.keys(eventType).forEach(field => {
+            eventType[field] = '';
+          });
+        }
+      }
+    },
     async loadVenues() {
       try {
         const response = await this.$axios.get('/api/venues');
