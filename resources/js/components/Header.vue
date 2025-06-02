@@ -19,11 +19,23 @@ import axios from 'axios';
 export default {
   methods: {
     logout() {
-      axios.post('/logout', {}, { withCredentials: true })
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+      
+      axios.post('/api/logout', {}, {
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
         .then(() => {
-          window.location.href = '/api/login';
+          // Clear any stored user data
+          localStorage.removeItem('user');
+          
+          // Redirect to login page
+          window.location.href = '/';
         })
-        .catch(() => {
+        .catch(error => {
+          console.error('Logout error:', error);
           alert('Logout failed. Please try again.');
         });
     }

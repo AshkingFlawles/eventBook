@@ -106,4 +106,24 @@ class LoginController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Handle user logout.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function logout(Request $request)
+    {
+        // Clear the session
+        $request->session()->flush();
+        
+        // Regenerate session ID
+        $request->session()->regenerate();
+        
+        // Clear any stored user data
+        $request->session()->put('user', null);
+        
+        return response()->json(['message' => 'Successfully logged out'], 200);
+    }
 }
