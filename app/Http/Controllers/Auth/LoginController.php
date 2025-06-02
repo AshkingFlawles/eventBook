@@ -2,12 +2,38 @@
 
 namespace App\Http\Controllers\Auth;
 
+// Authentication Controller - Handles login and session management
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log; // Import Log facade
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\User;
+
+// To check authentication status in Laravel routes or controllers:
+// 1. Using Auth facade:
+//    - Auth::check() - returns boolean if user is logged in
+//    - Auth::id() - returns authenticated user ID
+//    - Auth::user() - returns authenticated user object
+//    - Auth::guest() - returns true if user is not logged in
+
+// 2. Using session:
+//    - session('user') - retrieves user data from session
+//    - session()->has('user') - checks if user data exists in session
+
+// 3. In routes/web.php:
+//    Route::middleware(['auth'])->group(function () {
+//        // Protected routes here
+//    });
+
+// 4. In blade templates:
+//    @auth
+//        // User is authenticated
+//    @endauth
+
+//    @guest
+//        // User is not authenticated
+//    @endguest
 
 class LoginController extends Controller
 {
@@ -54,32 +80,30 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
-        
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+        try {
+            $credentials = $request->only('email', 'password');
             
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'authenticated' => true,
-                    'user' => Auth::user(),
-                    'csrf' => csrf_token()
-                ]);
+            if (Auth::attempt($credentials)) {
+                $request->session()->regenerate();
+                
+                $user = Auth::user();
+                
+                // Set the session with user data
+                $request->session()->put('user', $user->toArray());
+                
+                // Redirect to dashboard
+                return redirect()->to('/api/dashboard');
             }
             
-            return redirect()->intended('/api/dashboard');
-        }
-
-        if ($request->wantsJson()) {
             return response()->json([
                 'authenticated' => false,
                 'message' => 'Invalid credentials'
             ], 401);
+        } catch (\Exception $e) {
+            Log::error('Login error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Internal server error'
+            ], 500);
         }
-
-        return back()->withErrors([
-            'email' => 'Invalid credentials',
-        ])->onlyInput('email');
-    }
     }
 }

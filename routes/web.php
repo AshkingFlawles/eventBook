@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Auth;
 // Authentication routes
 // Authentication routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/api/login', [LoginController::class, 'login']);
+Route::post('/api/login', [LoginController::class, 'login'])->middleware('web');
 Route::post('/api/logout', [LoginController::class, 'logout']);
 
 // Public routes
