@@ -15,7 +15,8 @@
 </template>
 
 <script>
-import axios from 'axios'; 
+import api from '../axios';
+
 export default {
   data() {
     return {
@@ -26,19 +27,24 @@ export default {
       errors: []
     }
   },
-  
   methods: {
     login() {
-        axios.post('/api/login2', this.form)
-    .then(response => {
-        // Login successful, redirect to dashboard or whatever
-        console.log(response.data);
-        
-    })
-    .catch(error => {
-        // Login failed, display error message
-        this.errors = error.response.data.errors;
-    });
+      api.post('/api/login', this.form)
+        .then(response => {
+          // Clear any existing errors
+          this.errors = [];
+          
+          // Store user data in localStorage for Vue
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          
+          // Redirect to dashboard
+          window.location.href = '/api/dashboard';
+        })
+        .catch(error => {
+          // Handle error response
+          this.errors = error.response?.data?.message ? [error.response.data.message] : ['Invalid credentials'];
+          console.error('Login error:', error);
+        });
     }
   }
 }

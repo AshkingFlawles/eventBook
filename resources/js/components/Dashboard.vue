@@ -1,22 +1,35 @@
 <template>
-  <!-- Main dashboard layout with sidebar and content area -->
-  <div class="flex min-h-screen bg-gray-100">
-    <!-- Sidebar component with selected menu item and event handler -->
-    <Sidebar :selected="selected" @select="selected = $event" />
-    <!-- Main content area displaying the selected component -->
-    <main class="flex-1 p-6">
-      <component :is="currentComponent" />
-    </main>
+  <div v-if="user" class="flex min-h-screen bg-gray-100">
+    <!-- Sidebar component -->
+    <Sidebar :selected="selected" @select="navigate" />
+
+    <!-- Right-side content (Header + Main) -->
+    <div class="flex-1 flex flex-col min-h-screen overflow-hidden">
+      <!-- Sticky Header -->
+      <Header />
+
+      <!-- Main content below header -->
+      <main class="flex-1 overflow-y-auto p-6 mt-2">
+        <h1 class="text-2xl font-bold mb-4">Welcome, {{ user.name }}</h1>
+        <component :is="currentComponent" />
+      </main>
+    </div>
+  </div>
+  <div v-else class="flex items-center justify-center min-h-screen">
+    <p class="text-gray-600">Loading...</p>
   </div>
 </template>
 
 <script>
-// Import child components for the dashboard
+import api from '../axios';
+// Import necessary components
 import Sidebar from './Sidebar.vue';
 import CreateVenue from './CreateVenue.vue';
 import ManageEvents from './ManageEvents.vue';
 import CreateEvent from './CreateEvent.vue';
 import DashboardHome from './DashboardHome.vue';
+import Header from './Header.vue';
+import ManageVenues from './ManageVenues.vue';
 
 export default {
   components: {
@@ -24,33 +37,55 @@ export default {
     CreateVenue,
     ManageEvents,
     CreateEvent,
-    DashboardHome
+    DashboardHome,
+    Header,
+    ManageVenues
   },
   data() {
     return {
-      // Currently selected menu item, default to dashboard home
-      selected: 'dashboardHome'
+      selected: 'dashboardHome',
+      user: null
     };
   },
-  computed: {
-    // Compute the component to display based on selected menu item
-    currentComponent() {
-      switch (this.selected) {
-        case 'createVenue':
-          return 'CreateVenue';
-        case 'manageEvents':
-          return 'ManageEvents';
-        case 'createEvent':
-          return 'CreateEvent';
-          // Default to dashboard home
-          case 'dashboardHome':
-          return 'DashboardHome';
-        default:
-          // Default dashboard home content
-          return {
-            template: '<div class="p-6 bg-white rounded shadow-md max-w-3xl mx-auto"><h1 class="text-2xl font-bold">Welcome to the Dashboard</h1><p>Select an option from the left menu.</p></div>'
-          };
+  created() {
+    // Initialize user from Laravel global variable
+    this.user = window.Laravel.user;
+    
+    // Watch for authentication changes
+    window.addEventListener('storage', this.handleStorageChange);
+  },
+  beforeUnmount() {
+    window.removeEventListener('storage', this.handleStorageChange);
+  },
+  methods: {
+    navigate(componentName) {
+      this.selected = componentName;
+    },
+    async logout() {
+      try {
+        await api.post('/api/logout');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      } catch (error) {
+        console.error('Logout failed:', error);
       }
+    },
+    handleStorageChange(event) {
+      if (event.key === 'user') {
+        this.user = event.newValue ? JSON.parse(event.newValue) : null;
+      }
+    }
+  },
+  computed: {
+    currentComponent() {
+      const components = {
+        dashboardHome: 'DashboardHome',
+        createVenue: 'CreateVenue',
+        manageEvents: 'ManageEvents',
+        manageVenues: 'ManageVenues',
+        createEvent: 'CreateEvent'
+      };
+      return components[this.selected] || 'DashboardHome';
     }
   }
 };

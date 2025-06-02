@@ -28,7 +28,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/api/dashboard';
 
     /**
      * Create a new controller instance.
@@ -41,6 +41,10 @@ class LoginController extends Controller
         $this->middleware('auth')->only('logout');
     }
 
+    public function showLoginForm()
+    {
+        return view('login');
+    }
 
     /**
      * Handle a login request to the application.
@@ -48,28 +52,34 @@ class LoginController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    public function login(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+        
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'authenticated' => true,
+                    'user' => Auth::user(),
+                    'csrf' => csrf_token()
+                ]);
+            }
+            
+            return redirect()->intended('/api/dashboard');
+        }
 
-     public function login(Request $request)
-     {
-         // Validate input
-         $request->validate([
-             'email' => 'required|email',
-             'password' => 'required'
-         ]);
- 
-         // Attempt login
-         if (Auth::attempt($request->only('email', 'password'))) {
-             return response()->json(['message' => 'Logged in successfully']);
-         }
- 
-         return response()->json(['message' => 'Invalid email or password'], 401);
-     }
+        if ($request->wantsJson()) {
+            return response()->json([
+                'authenticated' => false,
+                'message' => 'Invalid credentials'
+            ], 401);
+        }
 
-     // create a mthod that returns all the users in json format 
-     public function users()
-     {
-        $users = User::all();
-        //return json 
-        return response()->json($users);
-     }
+        return back()->withErrors([
+            'email' => 'Invalid credentials',
+        ])->onlyInput('email');
+    }
+    }
 }
