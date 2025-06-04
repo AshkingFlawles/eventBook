@@ -1,6 +1,25 @@
 <template>
   <div class="p-4 bg-gray-50 rounded">
     <h2 class="text-xl font-semibold mb-4">Pricing Details</h2>
+    
+    <!-- Currency Selector -->
+    <div class="mb-4">
+      <label class="block">
+        <span class="text-gray-700 font-semibold">Currency</span>
+        <select
+          v-model="venue.currency"
+          class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+          required
+        >
+          <option value="USD">USD ($)</option>
+          <option value="EUR">EUR (€)</option>
+          <option value="GBP">GBP (£)</option>
+          <option value="JPY">JPY (¥)</option>
+          <option value="CAD">CAD (C$)</option>
+          <option value="AUD">AUD (A$)</option>
+        </select>
+      </label>
+    </div>
     <label class="block">
       <span class="text-gray-700 font-semibold">Pricing Model</span>
       <select
@@ -384,34 +403,119 @@
       <p class="text-gray-700">This venue is free to use.</p>
     </div>
 
-    <!-- Existing Tiered Pricing -->
-    <div v-if="venue.pricing_model === 'tiered'" class="mt-4">
-      <div v-for="(tier, index) in venue.pricing_tiers" :key="index" class="mb-4 p-4 border rounded">
+    <!-- Subscription Plans -->
+    <div v-if="venue.pricing_model === 'subscription'" class="mt-4">
+      <div v-for="(plan, index) in venue.subscription_plans" :key="'plan-'+index" class="mb-4 p-4 border rounded">
         <label class="block">
-          <span class="text-gray-700 font-semibold">Condition (e.g., 'Weekdays 9-5', '50+ guests')</span>
+          <span class="text-gray-700 font-semibold">Plan Name</span>
           <input
-            v-model="tier.condition"
+            v-model="plan.name"
             type="text"
             class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
             required
           />
         </label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <label class="block">
+            <span class="text-gray-700 font-semibold">Price ({{ currencySymbol }})</span>
+            <input
+              v-model.number="plan.price"
+              type="number"
+              step="0.01"
+              min="0"
+              class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+              required
+            />
+          </label>
+          <label class="block">
+            <span class="text-gray-700 font-semibold">Billing Cycle</span>
+            <select
+              v-model="plan.billing_cycle"
+              class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+              required
+            >
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="annually">Annually</option>
+            </select>
+          </label>
+        </div>
         <label class="block mt-2">
-          <span class="text-gray-700 font-semibold">Rate ({{ currencySymbol }})</span>
-          <input
-            v-model.number="tier.rate"
-            type="number"
-            step="0.01"
-            min="0"
+          <span class="text-gray-700 font-semibold">Description</span>
+          <textarea
+            v-model="plan.description"
             class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+            rows="2"
+          ></textarea>
+        </label>
+        <div class="flex justify-end">
+          <button type="button" @click="removeSubscriptionPlan(index)" class="mt-2 text-red-600 hover:underline">
+            Remove Plan
+          </button>
+        </div>
+      </div>
+      <button 
+        type="button" 
+        @click="addSubscriptionPlan" 
+        class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      >
+        Add Subscription Plan
+      </button>
+    </div>
+
+    <!-- Tiered Pricing -->
+    <div v-if="venue.pricing_model === 'tiered'" class="mt-4">
+      <div v-for="(tier, index) in venue.pricing_tiers" :key="'tier-'+index" class="mb-4 p-4 border rounded">
+        <label class="block">
+          <span class="text-gray-700 font-semibold">Tier Name</span>
+          <input
+            v-model="tier.name"
+            type="text"
+            class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+            placeholder="e.g., Basic, Premium, VIP"
             required
           />
         </label>
-        <button type="button" @click="removeTier(index)" class="mt-2 text-red-600 hover:underline">
-          Remove Tier
-        </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <label class="block">
+            <span class="text-gray-700 font-semibold">Condition</span>
+            <input
+              v-model="tier.condition"
+              type="text"
+              class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+              placeholder="e.g., 'Weekdays 9-5', '50+ guests'"
+              required
+            />
+          </label>
+          <label class="block">
+            <span class="text-gray-700 font-semibold">Rate ({{ currencySymbol }})</span>
+            <input
+              v-model.number="tier.rate"
+              type="number"
+              step="0.01"
+              min="0"
+              class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+              required
+            />
+          </label>
+        </div>
+        <div class="flex justify-end">
+          <button 
+            type="button" 
+            @click="removeTier(index)" 
+            class="mt-2 px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded border border-red-200 hover:border-red-300"
+          >
+            Remove Tier
+          </button>
+        </div>
       </div>
-      <button type="button" @click="addTier" class="text-blue-600 hover:underline">Add Tier</button>
+      <button 
+        type="button" 
+        @click="addTier" 
+        class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      >
+        Add Tier
+      </button>
     </div>
 
     <!-- Flat Rate Pricing -->
@@ -443,17 +547,83 @@
 export default {
   name: 'VenuePricing',
   props: {
-    venue: Object,
-    currencySymbol: String,
-    allFacilitiesOptions: Array,
-    facilityIcons: Object,
-    formatFeatureName: Function,
-    addTier: Function,
-    removeTier: Function,
-    addPackage: Function,
-    removePackage: Function,
-    addSubscriptionPlan: Function,
-    removeSubscriptionPlan: Function,
+    venue: {
+      type: Object,
+      required: true,
+      default: () => ({
+        pricing_model: '',
+        currency: 'USD',
+        price_per_hour: null,
+        price_per_day: null,
+        price_per_week: null,
+        price_per_month: null,
+        per_event_price: null,
+        price_per_person: null,
+        min_guests: null,
+        max_guests: null,
+        pricing_tiers: [],
+        pricing_packages: [],
+        subscription_plans: [],
+        deposit_required: false,
+        deposit_amount: null,
+        deposit_percentage: null,
+        cancellation_policy: ''
+      })
+    },
+    currencySymbol: {
+      type: String,
+      default: '$' // Default to $ if not provided
+    },
+    allFacilitiesOptions: {
+      type: Array,
+      default: () => []
+    },
+    facilityIcons: {
+      type: Object,
+      default: () => ({})
+    },
+    formatFeatureName: {
+      type: Function,
+      default: (name) => name
+    },
+    addTier: {
+      type: Function,
+      default: () => {}
+    },
+    removeTier: {
+      type: Function,
+      default: () => {}
+    },
+    addPackage: {
+      type: Function,
+      default: () => {}
+    },
+    removePackage: {
+      type: Function,
+      default: () => {}
+    },
+    addSubscriptionPlan: {
+      type: Function,
+      default: () => {}
+    },
+    removeSubscriptionPlan: {
+      type: Function,
+      default: () => {}
+    }
   },
-};
+  watch: {
+    'venue.currency'(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        // Emit event to parent if needed
+        this.$emit('update:currency', newVal);
+      }
+    }
+  },
+  methods: {
+    // Add any component-specific methods here
+    updateCurrency(event) {
+      this.$emit('update:currency', event.target.value);
+    }
+  }
+}
 </script>

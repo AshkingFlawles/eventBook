@@ -1,52 +1,54 @@
-
 <template>
   <div class="container mx-auto p-4">
     <h1 class="text-2xl font-bold mb-4">Create New Venue</h1>
     <form @submit.prevent="submitVenue" class="space-y-6">
-      <!-- Basic Information Section -->
-      <basic-information
+      <!-- Basic Information Component -->
+      <BasicInformation
         :venue="venue"
-        :venue-type-options="venueTypeOptions"
-        :available-currencies="availableCurrencies"
+        :venueTypeOptions="Object.keys(venueRequirements)"
+        :availableCurrencies="availableCurrencies"
         @update-facilities="updateFacilities"
       />
 
-      <!-- Facilities Section -->
-      <venue-facilities
+      <!-- Venue Facilities Component -->
+      <VenueFacilities
         :venue="venue"
-        :required-facilities="requiredFacilities"
-        :optional-facilities="optionalFacilities"
-        :facility-icons="facilityIcons"
-        :format-feature-name="formatFeatureName"
+        :requiredFacilities="requiredFacilities"
+        :optionalFacilities="optionalFacilities"
+        :facilityIcons="facilityIcons"
+        :formatFeatureName="formatFeatureName"
       />
 
-      <!-- Pricing Details Section -->
-      <venue-pricing
+      <!-- Venue Pricing Component -->
+      <VenuePricing
         :venue="venue"
-        :currency-symbol="currencySymbol"
-        :all-facilities-options="allFacilitiesOptions"
-        :format-feature-name="formatFeatureName"
-        @add-tier="addTier"
-        @remove-tier="removeTier"
-        @add-package="addPackage"
-        @remove-package="removePackage"
-        @add-subscription-plan="addSubscriptionPlan"
-        @remove-subscription-plan="removeSubscriptionPlan"
+        :currencySymbol="currencySymbol"
+        :allFacilitiesOptions="allFacilitiesOptions"
+        :facilityIcons="facilityIcons"
+        :formatFeatureName="formatFeatureName"
+        :addTier="addTier"
+        :removeTier="removeTier"
+        :addPackage="addPackage"
+        :removePackage="removePackage"
+        :addSubscriptionPlan="addSubscriptionPlan"
+        :removeSubscriptionPlan="removeSubscriptionPlan"
       />
-      <!-- Additional Fees Section -->
-      <additional-fees
+
+      <!-- Additional Fees Component -->
+      <AdditionalFees
         :venue="venue"
-        :currency-symbol="currencySymbol"
+        :currencySymbol="currencySymbol"
         @add-fee="addFee"
         @remove-fee="removeFee"
       />
 
-      <!-- Additional Features Section -->
-      <additional-features
+      <!-- Additional Features Component -->
+      <AdditionalFeatures
         :venue="venue"
-        :show-additional-features.sync="showAdditionalFeatures"
-        :feature-categories="featureCategories"
-        :format-feature-name="formatFeatureName"
+        :showAdditionalFeatures="showAdditionalFeatures"
+        :featureCategories="featureCategories"
+        :formatFeatureName="formatFeatureName"
+        v-model:showAdditionalFeatures="showAdditionalFeatures"
       />
 
       <!-- Submit Button -->
@@ -58,6 +60,7 @@
 </template>
 
 <script>
+//Import components for form fields
 import BasicInformation from './CreateVenue/BasicInformation.vue';
 import VenueFacilities from './CreateVenue/VenueFacilities.vue';
 import VenuePricing from './CreateVenue/VenuePricing.vue';
@@ -65,49 +68,40 @@ import AdditionalFees from './CreateVenue/AdditionalFees.vue';
 import AdditionalFeatures from './CreateVenue/AdditionalFeatures.vue';
 
 export default {
+  name: 'CreateVenue',
   components: {
     BasicInformation,
     VenueFacilities,
     VenuePricing,
     AdditionalFees,
-    AdditionalFeatures
+    AdditionalFeatures,
   },
   data() {
     return {
-      // File handling data
-      gk_isXlsx: false,
-      gk_xlsxFileLookup: {},
-      gk_fileData: {},
-      // Venue data model with initial values
       venue: {
-        name: '', // Venue name
-        type: '', // Selected venue type
-        currency: 'USD', // Default currency set to USD
-        facilities: [], // Array of selected optional facilities
-        pricing_model: '', // Selected pricing model
-        price_per_hour: null, // Price for per hour model
-        price_per_day: null, // Price for per day model
-        price_per_week: null, // Price for per week model (new)
-        price_per_month: null, // Price for per month model (new)
-        per_event_price: null, // Fixed rate for per event model (new)
-        per_event_description: '', // Description for per event (new)
-        price_per_person: null, // Price for per person model
-        min_guests: null, // Minimum guests for per person
-        max_guests: null, // Maximum guests for per person
-        pricing_tiers: [], // Array for tiered pricing models (used by tiered, tiered_hourly, tiered_capacity, seasonal)
-        pricing_packages: [], // Array for package pricing
-        subscription_plans: [], // Array for subscription/membership plans
-        revenue_share_percentage: null, // Percentage for revenue share model (new)
-        revenue_share_description: '', // Description for revenue share (new)
-        negotiable_notes: '', // Notes for negotiable pricing (new)
-        flat_rate_price: null, // Price for flat rate model
-        flat_rate_description: '', // Description for flat rate
-        deposit_required: false, // Flag for deposit requirement
-        deposit_amount: null, // Deposit amount
-        deposit_percentage: null, // Deposit percentage
-        cancellation_policy: '', // Cancellation policy text
-        additional_fees: [], // Array of additional fees
-        // Additional features initialized
+        name: '',
+        type: '',
+        currency: 'USD',
+        facilities: [],
+        pricing_model: '',
+        price_per_hour: null,
+        price_per_day: null,
+        price_per_week: null,
+        price_per_month: null,
+        per_event_price: null,
+        per_event_description: '',
+        price_per_person: null,
+        min_guests: null,
+        max_guests: null,
+        pricing_tiers: [],
+        pricing_packages: [],
+        subscription_plans: [],
+        deposit_required: false,
+        deposit_amount: null,
+        deposit_percentage: null,
+        cancellation_policy: '',
+        additional_fees: [],
+        // Additional Features
         wheelchair_ramps: false, elevators: false, accessible_restrooms: false, braille_signage: false, hearing_assistance: false, service_animal_areas: false,
         microphones: 0, speakers: 0, projectors: 0, screens: 0, lighting_controls: false, av_control_room: false, streaming_equipment: false,
         tables: 0, chairs: 0, podiums: 0, lecterns: 0, coat_racks: 0, modular_furniture: 0, lounge_chairs: 0,
@@ -129,14 +123,16 @@ export default {
         organic_menu: false, vegan_options: false, allergen_free: false,
         recycling_bins: 0, composting: false, rainwater_harvesting: false,
       },
-      showAdditionalFeatures: false, // Toggle for showing additional features section
-      // Available currencies with codes and symbols
-      availableCurrencies: [
-        { code: 'USD', symbol: '$' },
-        { code: 'GBP', symbol: '£' },
-        { code: 'EUR', symbol: '€' },
-      ],
-      // Predefined venue types and their facility requirements
+      showAdditionalFeatures: false,
+       availableCurrencies: [
+      { code: 'USD', symbol: '$' },
+      { code: 'EUR', symbol: '€' },
+      { code: 'GBP', symbol: '£' },
+      { code: 'JPY', symbol: '¥' },
+      { code: 'CAD', symbol: 'C$' },
+      { code: 'AUD', symbol: 'A$' },
+      // Add more currencies as needed
+    ],
       venueRequirements: {
         cafe: { required: ['tables', 'chairs', 'restrooms', 'coffee_machine'], optional: ['wifi', 'outdoor_seating', 'pastry_display', 'cash_register', 'barista_station', 'music_system'] },
         restaurant: { required: ['tables', 'chairs', 'kitchen', 'restrooms'], optional: ['bar', 'private_dining_rooms', 'outdoor_seating', 'wine_cellar', 'live_music_stage', 'valet_parking'] },
@@ -166,7 +162,6 @@ export default {
         ski_resort: { required: ['slopes', 'lifts'], optional: ['lodge', 'ski_rentals', 'warming_huts', 'snow_machines', 'apres_ski_bar'] },
         vineyard: { required: ['vineyard', 'tasting_room'], optional: ['barrel_room', 'outdoor_seating', 'event_space', 'wine_cellar', 'picnic_area'] },
       },
-      // Mapping of facilities to Font Awesome icons
       facilityIcons: {
         tables: 'fas fa-table', chairs: 'fas fa-chair', restrooms: 'fas fa-restroom', coffee_machine: 'fas fa-coffee', kitchen: 'fas fa-utensils',
         wifi: 'fas fa-wifi', outdoor_seating: 'fas fa-umbrella-beach', pastry_display: 'fas fa-birthday-cake', cash_register: 'fas fa-cash-register',
@@ -196,7 +191,6 @@ export default {
         lodge: 'fas fa-hotel', ski_rentals: 'fas fa-skiing-nordic', warming_huts: 'fas fa-fire', snow_machines: 'fas fa-snowflake', apres_ski_bar: 'fas fa-glass-cheers',
         vineyard: 'fas fa-wine-bottle', tasting_room: 'fas fa-glass-wine', barrel_room: 'fas fa-wine-bottle', picnic_area: 'fas fa-utensils',
       },
-      // Categories for additional features
       featureCategories: [
         { name: 'Accessibility Features', features: [
           { name: 'wheelchair_ramps', type: 'checkbox', icon: 'fas fa-wheelchair' },
@@ -215,207 +209,205 @@ export default {
           { name: 'av_control_room', type: 'checkbox', icon: 'fas fa-sliders-h' },
           { name: 'streaming_equipment', type: 'checkbox', icon: 'fas fa-broadcast-tower' },
         ]},
-        // ... (remaining featureCategories unchanged)
+        { name: 'Furniture', features: [
+          { name: 'tables', type: 'number', icon: 'fas fa-table' },
+          { name: 'chairs', type: 'number', icon: 'fas fa-chair' },
+          { name: 'podiums', type: 'number', icon: 'fas fa-podium' },
+          { name: 'lecterns', type: 'number', icon: 'fas fa-book-reader' },
+          { name: 'coat_racks', type: 'number', icon: 'fas fa-coat' },
+          { name: 'modular_furniture', type: 'number', icon: 'fas fa-cubes' },
+          { name: 'lounge_chairs', type: 'number', icon: 'fas fa-couch' },
+        ]},
+        { name: 'Decorations', features: [
+          { name: 'artwork', type: 'checkbox', icon: 'fas fa-paint-brush' },
+          { name: 'plants', type: 'checkbox', icon: 'fas fa-leaf' },
+          { name: 'lighting_fixtures', type: 'checkbox', icon: 'fas fa-lightbulb' },
+          { name: 'banners', type: 'checkbox', icon: 'fas fa-flag' },
+          { name: 'table_centerpieces', type: 'checkbox', icon: 'fas fa-flower' },
+          { name: 'sculptures', type: 'checkbox', icon: 'fas fa-monument' },
+          { name: 'themed_decor', type: 'checkbox', icon: 'fas fa-mask' },
+        ]},
+        { name: 'Safety Features', features: [
+          { name: 'fire_extinguishers', type: 'number', icon: 'fas fa-fire-extinguisher' },
+          { name: 'emergency_exits', type: 'number', icon: 'fas fa-door-open' },
+          { name: 'first_aid_kits', type: 'number', icon: 'fas fa-first-aid' },
+          { name: 'security_cameras', type: 'number', icon: 'fas fa-camera' },
+          { name: 'alarm_system', type: 'checkbox', icon: 'fas fa-bell' },
+          { name: 'defibrillators', type: 'number', icon: 'fas fa-heartbeat' },
+        ]},
+        { name: 'Environmental Controls', features: [
+          { name: 'air_conditioning', type: 'checkbox', icon: 'fas fa-snowflake' },
+          { name: 'heating', type: 'checkbox', icon: 'fas fa-temperature-high' },
+          { name: 'ventilation', type: 'checkbox', icon: 'fas fa-fan' },
+          { name: 'humidity_control', type: 'checkbox', icon: 'fas fa-tint' },
+          { name: 'solar_panels', type: 'checkbox', icon: 'fas fa-solar-panel' },
+          { name: 'noise_reduction', type: 'checkbox', icon: 'fas fa-volume-mute' },
+        ]},
+        { name: 'Catering and Beverage Services', features: [
+          { name: 'in_house_catering', type: 'checkbox', icon: 'fas fa-utensils' },
+          { name: 'external_catering_allowed', type: 'checkbox', icon: 'fas fa-truck' },
+          { name: 'bar_service', type: 'checkbox', icon: 'fas fa-glass-martini' },
+          { name: 'coffee_stations', type: 'number', icon: 'fas fa-coffee' },
+          { name: 'water_dispensers', type: 'number', icon: 'fas fa-water' },
+          { name: 'buffet_setup', type: 'checkbox', icon: 'fas fa-hamburger' },
+        ]},
+        { name: 'Entertainment Options', features: [
+          { name: 'live_music', type: 'checkbox' , icon: 'fas fa-music' },
+          { name: 'dj_booth', type: 'checkbox', icon: 'fas fa-headphones' },
+          { name: 'karaoke', type: 'checkbox', icon: 'fas fa-microphone' },
+          { name: 'dance_floor', type: 'checkbox', icon: 'fas fa-shoe-prints' },
+          { name: 'stage', type: 'checkbox', icon: 'fas fa-microphone' },
+          { name: 'photo_booth', type: 'checkbox', icon: 'fas fa-camera' },
+          { name: 'virtual_reality', type: 'checkbox', icon: 'fas fa-vr-cardboard' },
+        ]},
+        { name: 'Recreational Facilities', features: [
+          { name: 'swimming_pool', type: 'checkbox', icon: 'fas fa-swimming-pool' },
+          { name: 'gym', type: 'checkbox', icon: 'fas fa-dumbbell' },
+          { name: 'spa', type: 'checkbox', icon: 'fas fa-spa' },
+          { name: 'tennis_court', type: 'checkbox', icon: 'fas fa-tennis-ball' },
+          { name: 'golf_course', type: 'checkbox', icon: 'fas fa-golf-ball' },
+          { name: 'arcade_games', type: 'number', icon: 'fas fa-gamepad' },
+          { name: 'bowling_lanes', type: 'number', icon: 'fas fa-bowling-ball' },
+        ]},
+        { name: 'Outdoor Features', features: [
+          { name: 'patio', type: 'checkbox', icon: 'fas fa-umbrella-beach' },
+          { name: 'terrace', type: 'checkbox', icon: 'fas fa-sun' },
+          { name: 'garden', type: 'checkbox', icon: 'fas fa-leaf' },
+          { name: 'pool', type: 'checkbox', icon: 'fas fa-swimming-pool' },
+          { name: 'bbq_area', type: 'checkbox', icon: 'fas fa-fire' },
+          { name: 'fire_pit', type: 'checkbox', icon: 'fas fa-fire-alt' },
+          { name: 'rooftop_access', type: 'checkbox', icon: 'fas fa-building' },
+        ]},
+        { name: 'Parking and Transportation', features: [
+          { name: 'valet_parking', type: 'checkbox', icon: 'fas fa-car' },
+          { name: 'self_parking', type: 'checkbox', icon: 'fas fa-parking' },
+          { name: 'parking_garage', type: 'checkbox', icon: 'fas fa-warehouse' },
+          { name: 'shuttle_service', type: 'checkbox', icon: 'fas fa-bus' },
+          { name: 'taxi_stand', type: 'checkbox', icon: 'fas fa-taxi' },
+          { name: 'bike_sharing', type: 'checkbox', icon: 'fas fa-bicycle' },
+          { name: 'ev_charging', type: 'number', icon: 'fas fa-charging-station' },
+        ]},
+        { name: 'Accommodation', features: [
+          { name: 'on_site_hotel', type: 'checkbox', icon: 'fas fa-hotel' },
+          { name: 'nearby_hotels', type: 'number', icon: 'fas fa-bed' },
+          { name: 'vip_suites', type: 'number', icon: 'fas fa-crown' },
+        ]},
+        { name: 'Business Services', features: [
+          { name: 'printing', type: 'checkbox', icon: 'fas fa-print' },
+          { name: 'copying', type: 'checkbox', icon: 'fas fa-copy' },
+          { name: 'fax', type: 'checkbox', icon: 'fas fa-fax' },
+          { name: 'business_center', type: 'checkbox', icon: 'fas fa-briefcase' },
+          { name: 'high_speed_internet', type: 'checkbox', icon: 'fas fa-wifi' },
+          { name: 'conference_call_system', type: 'checkbox', icon: 'fas fa-phone-alt' },
+        ]},
+        { name: 'Event Planning Services', features: [
+          { name: 'event_coordinator', type: 'checkbox', icon: 'fas fa-user-tie' },
+          { name: 'staff', type: 'number', icon: 'fas fa-users' },
+          { name: 'security', type: 'checkbox', icon: 'fas fa-shield-alt' },
+          { name: 'cleaning_crew', type: 'number', icon: 'fas fa-broom' },
+        ]},
+        { name: 'Cultural and Spiritual', features: [
+          { name: 'meditation_room', type: 'checkbox', icon: 'fas fa-om' },
+          { name: 'prayer_room', type: 'checkbox', icon: 'fas fa-pray' },
+          { name: 'cultural_artifacts', type: 'checkbox', icon: 'fas fa-landmark' },
+        ]},
+        { name: 'Family and Pet Services', features: [
+          { name: 'pet_friendly', type: 'checkbox', icon: 'fas fa-paw' },
+          { name: 'child_care', type: 'checkbox', icon: 'fas fa-baby' },
+          { name: 'nursing_room', type: 'checkbox', icon: 'fas fa-female' },
+        ]},
+        { name: 'Luxury Amenities', features: [
+          { name: 'luxury_concierge', type: 'checkbox', icon: 'fas fa-bellhop' },
+          { name: 'personal_shoppers', type: 'checkbox', icon: 'fas fa-shopping-bag' },
+          { name: 'spa_services', type: 'checkbox', icon: 'fas fa-spa' },
+        ]},
+        { name: 'Advanced Technology', features: [
+          { name: 'interactive_screens', type: 'checkbox', icon: 'fas fa-hand-pointer' },
+          { name: 'augmented_reality', type: 'checkbox', icon: 'fas fa-glasses' },
+          { name: 'holograms', type: 'checkbox', icon: 'fas fa-cube' },
+        ]},
+        { name: 'Dietary Options', features: [
+          { name: 'organic_menu', type: 'checkbox', icon: 'fas fa-leaf' },
+          { name: 'vegan_options', type: 'checkbox', icon: 'fas fa-carrot' },
+          { name: 'allergen_free', type: 'checkbox', icon: 'fas fa-shield-alt' },
+        ]},
+        { name: 'Sustainability Features', features: [
+          { name: 'recycling_bins', type: 'number', icon: 'fas fa-recycle' },
+          { name: 'composting', type: 'checkbox', icon: 'fas fa-leaf' },
+          { name: 'rainwater_harvesting', type: 'checkbox', icon: 'fas fa-tint' },
+        ]},
       ],
     };
   },
   computed: {
-    // List of venue type options including 'Custom'
-    venueTypeOptions() {
-      return [...Object.keys(this.venueRequirements), 'Custom'];
-    },
-    // Required facilities based on venue type; empty for Custom
     requiredFacilities() {
-      return this.venue.type === 'Custom' ? [] : (this.venueRequirements[this.venue.type]?.required || []);
+      return this.venue.type ? this.venueRequirements[this.venue.type].required : [];
     },
-    // Optional facilities; all facilities for Custom
     optionalFacilities() {
-      return this.venue.type === 'Custom' ? this.allFacilitiesOptions : (this.venueRequirements[this.venue.type]?.optional || []);
+      return this.venue.type ? this.venueRequirements[this.venue.type].optional : [];
     },
-    // All possible facilities for package selection or Custom type
     allFacilitiesOptions() {
-      const all = new Set();
-      for (const type in this.venueRequirements) {
-        this.venueRequirements[type].required.forEach(f => all.add(f));
-        this.venueRequirements[type].optional.forEach(f => all.add(f));
-      }
-      return Array.from(all).sort();
+      return this.venue.type ? [...this.venueRequirements[this.venue.type].required, ...this.venueRequirements[this.venue.type].optional] : [];
     },
-    // Symbol for the selected currency
     currencySymbol() {
-      const currency = this.availableCurrencies.find(c => c.code === this.venue.currency);
-      return currency ? currency.symbol : '$'; // Default to $ if not found
+      // Simple currency symbol mapping, can be extended
+      const symbols = { USD: '$', EUR: '€', GBP: '£' };
+      return symbols[this.venue.currency] || this.venue.currency;
     },
   },
   methods: {
-    // File handling methods
-    filledCell(cell) {
-      return cell !== '' && cell != null;
+    formatTypeName(type) {
+      return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     },
-    loadFileData(filename) {
-      if (this.gk_isXlsx && this.gk_xlsxFileLookup[filename]) {
-        try {
-          // Use the global XLSX object from the CDN
-          const workbook = window.XLSX.read(this.gk_fileData[filename], { type: 'base64' });
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-
-          // Convert sheet to JSON to filter blank rows
-          const jsonData = window.XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-          // Filter out blank rows (rows where all cells are empty, null, or undefined)
-          const filteredData = jsonData.filter(row => row.some(this.filledCell));
-
-          // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-          const headerRowIndex = filteredData.findIndex((row, index) =>
-            row.filter(this.filledCell).length >= (filteredData[index + 1] || []).filter(this.filledCell).length
-          );
-          
-          // Fallback
-          const finalHeaderRowIndex = (headerRowIndex === -1 || headerRowIndex > 25) ? 0 : headerRowIndex;
-
-          // Convert filtered JSON back to CSV
-          const csv = window.XLSX.utils.aoa_to_sheet(filteredData.slice(finalHeaderRowIndex));
-          return window.XLSX.utils.sheet_to_csv(csv, { header: 1 });
-        } catch (e) {
-          console.error('Error processing file:', e);
-          return "";
-        }
-      }
-      return this.gk_fileData[filename] || "";
-    },
-    // Format venue type for display (e.g., "open_space" to "Open Space")
-    formatTypeName(name) {
-      return name.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-    },
-    // Format feature name for display (e.g., "wheelchair_ramps" to "Wheelchair Ramps")
     formatFeatureName(name) {
-      return name.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     },
-    // Update facilities when venue type changes
     updateFacilities() {
-      const selectedRequired = this.requiredFacilities;
-      const selectedOptional = this.optionalFacilities;
-      this.venue.facilities = this.venue.facilities.filter(f => selectedOptional.includes(f));
-      // For Custom, all facilities are optional and selectable
+      this.venue.facilities = [];
     },
-    // Add a new pricing tier
     addTier() {
       this.venue.pricing_tiers.push({ condition: '', rate: null });
     },
-    // Remove a pricing tier
     removeTier(index) {
       this.venue.pricing_tiers.splice(index, 1);
     },
-    // Add a new package
     addPackage() {
       this.venue.pricing_packages.push({ name: '', facilities: [], price: null });
     },
-    // Remove a package
     removePackage(index) {
       this.venue.pricing_packages.splice(index, 1);
     },
-    // Add a new subscription plan
     addSubscriptionPlan() {
       this.venue.subscription_plans.push({ name: '', price: null, billing_period: 'monthly', benefits: '' });
     },
-    // Remove a subscription plan
     removeSubscriptionPlan(index) {
       this.venue.subscription_plans.splice(index, 1);
     },
-    // Add a new additional fee
     addFee() {
       this.venue.additional_fees.push({ name: '', amount: null });
     },
-    // Remove an additional fee
     removeFee(index) {
       this.venue.additional_fees.splice(index, 1);
     },
-    // Submit the venue form
     submitVenue() {
-      if (!this.venue.name || !this.venue.type || !this.venue.pricing_model) {
-        alert("Please fill in all required basic information and pricing model.");
-        return;
+      const formData = new FormData();
+      for (const [key, value] of Object.entries(this.venue)) {
+        if (key === 'facilities') {
+          this.requiredFacilities.forEach(f => formData.append('facilities[]', f));
+          value.forEach(f => formData.append('facilities[]', f));
+        } else if (key === 'pricing_tiers' || key === 'pricing_packages' || key === 'subscription_plans' || key === 'additional_fees') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value);
+        }
       }
-      const venueData = {
-        name: this.venue.name,
-        type: this.venue.type,
-        currency: this.venue.currency, // Include selected currency
-        facilities: this.venue.facilities,
-        pricing_model: this.venue.pricing_model,
-        deposit_required: this.venue.deposit_required,
-        deposit_amount: this.venue.deposit_amount,
-        deposit_percentage: this.venue.deposit_percentage,
-        cancellation_policy: this.venue.cancellation_policy,
-        additional_fees: this.venue.additional_fees,
-      };
-      if (this.showAdditionalFeatures) {
-        venueData.additional_features = {};
-        this.featureCategories.forEach(category => {
-          category.features.forEach(feature => {
-            venueData.additional_features[feature.name] = this.venue[feature.name];
-          });
-        });
-      }
-      switch (this.venue.pricing_model) {
-        case 'per_hour':
-          venueData.price_per_hour = this.venue.price_per_hour;
-          break;
-        case 'per_day':
-          venueData.price_per_day = this.venue.price_per_day;
-          break;
-        case 'per_week':
-          venueData.price_per_week = this.venue.price_per_week;
-          break;
-        case 'per_month':
-          venueData.price_per_month = this.venue.price_per_month;
-          break;
-        case 'per_event':
-          venueData.per_event_price = this.venue.per_event_price;
-          venueData.per_event_description = this.venue.per_event_description;
-          break;
-        case 'per_person':
-          venueData.price_per_person = this.venue.price_per_person;
-          venueData.min_guests = this.venue.min_guests;
-          venueData.max_guests = this.venue.max_guests;
-          break;
-        case 'tiered':
-        case 'tiered_hourly':
-        case 'tiered_capacity':
-        case 'seasonal':
-          venueData.pricing_tiers = this.venue.pricing_tiers;
-          break;
-        case 'dynamic':
-          // No specific fields; handled externally
-          break;
-        case 'package':
-          venueData.pricing_packages = this.venue.pricing_packages;
-          break;
-        case 'membership':
-        case 'subscription':
-          venueData.subscription_plans = this.venue.subscription_plans;
-          break;
-        case 'revenue_share':
-          venueData.revenue_share_percentage = this.venue.revenue_share_percentage;
-          venueData.revenue_share_description = this.venue.revenue_share_description;
-          break;
-        case 'negotiable':
-          venueData.negotiable_notes = this.venue.negotiable_notes;
-          break;
-        case 'free':
-          // No additional fields
-          break;
-        case 'flat_rate':
-          venueData.flat_rate_price = this.venue.flat_rate_price;
-          venueData.flat_rate_description = this.venue.flat_rate_description;
-          break;
-      }
-      console.log("Submitting Venue Data:", venueData);
-      alert("Venue creation simulated! Check your browser's console for the submitted data.");
+      console.log('Submitting venue:', Object.fromEntries(formData));
+      // API call here
     },
   },
 };
 </script>
 
 <style>
-/* Custom styles can be added here if needed; Tailwind CSS is primarily used */
+/* Assuming Font Awesome and Tailwind CSS are included in the project */
 </style>
