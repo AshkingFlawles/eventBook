@@ -21,13 +21,14 @@ return new class extends Migration
             $table->decimal('longitude', 10, 7)->nullable();
             $table->integer('capacity')->nullable();
             $table->decimal('price_per_hour', 8, 2)->nullable();
-            $table->string('venue_type')->nullable();
+            $table->string('type')->nullable();
+            $table->string('currency', 10)->default('USD');
             $table->string('custom_venue_type', 255)->nullable();
             $table->time('available_from')->nullable();
             $table->time('available_to')->nullable();
 
             // Owner ID can be any user for now, to be refined later
-            $table->unsignedBigInteger('owner_id')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
 
             // New fields for venue dimensions & layout
             $table->integer('floor_area_sqft')->nullable();
@@ -78,8 +79,8 @@ return new class extends Migration
             $table->integer('chairs')->nullable();
             $table->integer('tables')->nullable();
 
-            // Foreign key constraint for owner_id
-            $table->foreign('owner_id')->references('id')->on('users')->onDelete('set null');
+            // Foreign key constraint for user_id
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
         });
     }
 

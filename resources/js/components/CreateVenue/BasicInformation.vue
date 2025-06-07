@@ -36,6 +36,42 @@
         </option>
       </select>
     </label>
+    <label class="block mt-4">
+      <span class="text-gray-700 font-semibold">Address</span>
+      <input
+        v-model="venue.address"
+        type="text"
+        class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+        required
+      />
+    </label>
+    <label class="block mt-4">
+      <span class="text-gray-700 font-semibold">City</span>
+      <input
+        v-model="venue.city"
+        type="text"
+        class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+        required
+      />
+    </label>
+    <label class="block mt-4">
+      <span class="text-gray-700 font-semibold">Country</span>
+      <input
+        v-model="venue.country"
+        type="text"
+        class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+        required
+      />
+    </label>
+    <label class="block mt-4">
+      <span class="text-gray-700 font-semibold">Contact Email</span>
+      <input
+        v-model="venue.contact_email"
+        type="email"
+        class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+        required
+      />
+    </label>
   </div>
 </template>
 

@@ -9,7 +9,14 @@
           :key="facility"
           class="flex items-center space-x-2"
         >
-          <input type="checkbox" :checked="true" disabled class="rounded" />
+          <input
+            type="checkbox"
+            :checked="venue.type !== 'custom' ? true : venue.facilities.includes(facility)"
+            :disabled="venue.type !== 'custom'"
+            v-model="venue.facilities"
+            :value="facility"
+            class="rounded"
+          />
           <i :class="facilityIcons[facility]" class="fa-lg text-blue-600"></i>
           <span class="text-gray-700">{{ formatFeatureName(facility) }}</span>
         </label>
