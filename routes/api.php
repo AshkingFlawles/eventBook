@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('/login', [\App\Http\Controllers\Auth\LoginController::class, 'login']);
+Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'logout'])->middleware('auth:sanctum');
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -21,3 +24,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 use App\Http\Controllers\BookingController;
 
 Route::get('/booking-trends', [BookingController::class, 'bookingTrends']);
+
+// Protected routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
+});

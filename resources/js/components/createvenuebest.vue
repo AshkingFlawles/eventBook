@@ -2,100 +2,192 @@
   <div class="container mx-auto p-4">
     <h1 class="text-2xl font-bold mb-4">Create New Venue</h1>
     <form @submit.prevent="submitVenue" class="space-y-6">
-      <!-- Basic Information Component -->
-<BasicInformation
-  :venue="venue"
-  :venueTypeOptions="[...Object.keys(venueRequirements), 'custom']"
-  :availableCurrencies="availableCurrencies"
-  @update-facilities="updateFacilities"
-/>
+      <!-- Basic Information -->
+      <div class="p-4 bg-gray-50 rounded">
+        <h2 class="text-xl font-semibold mb-4">Basic Information</h2>
+        <label class="block">
+          <span class="text-gray-700 font-semibold">Venue Name</span>
+          <input v-model="venue.name" type="text" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required />
+        </label>
+        <label class="block mt-4">
+          <span class="text-gray-700 font-semibold">Venue Type</span>
+          <select v-model="venue.type" @change="updateFacilities" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required>
+            <option disabled value="">Select Venue Type</option>
+            <option v-for="type in Object.keys(venueRequirements)" :key="type" :value="type">{{ formatTypeName(type) }}</option>
+          </select>
+        </label>
+      </div>
 
-      <!-- Venue Facilities Component -->
-      <VenueFacilities
-        :venue="venue"
-        :requiredFacilities="requiredFacilities"
-        :optionalFacilities="optionalFacilities"
-        :facilityIcons="facilityIcons"
-        :formatFeatureName="formatFeatureName"
-      />
+      <!-- Facilities -->
+      <div class="p-4 bg-gray-50 rounded">
+        <h2 class="text-xl font-semibold mb-4">Facilities</h2>
+        <h3 class="font-semibold text-gray-700">Required Facilities</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <label v-for="facility in requiredFacilities" :key="facility" class="flex items-center space-x-2">
+            <input type="checkbox" :checked="true" disabled class="rounded" />
+            <i :class="facilityIcons[facility]" class="fa-lg text-blue-600"></i>
+            <span class="text-gray-700">{{ formatFeatureName(facility) }}</span>
+          </label>
+        </div>
+        <h3 class="font-semibold text-gray-700 mt-4">Optional Facilities</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <label v-for="facility in optionalFacilities" :key="facility" class="flex items-center space-x-2">
+            <input type="checkbox" v-model="venue.facilities" :value="facility" class="rounded" />
+            <i :class="facilityIcons[facility]" class="fa-lg text-blue-600"></i>
+            <span class="text-gray-700">{{ formatFeatureName(facility) }}</span>
+          </label>
+        </div>
+      </div>
 
-      <!-- Venue Pricing Component -->
-      <VenuePricing
-        :venue="venue"
-        :currencySymbol="currencySymbol"
-        :allFacilitiesOptions="allFacilitiesOptions"
-        :facilityIcons="facilityIcons"
-        :formatFeatureName="formatFeatureName"
-        :addTier="addTier"
-        :removeTier="removeTier"
-        :addPackage="addPackage"
-        :removePackage="removePackage"
-        :addSubscriptionPlan="addSubscriptionPlan"
-        :removeSubscriptionPlan="removeSubscriptionPlan"
-      />
+      <!-- Pricing Details -->
+      <div class="p-4 bg-gray-50 rounded">
+        <h2 class="text-xl font-semibold mb-4">Pricing Details</h2>
+        <label class="block">
+          <span class="text-gray-700 font-semibold">Pricing Model</span>
+          <select v-model="venue.pricing_model" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required>
+            <option disabled value="">Select Pricing Model</option>
+            <option value="per_hour">Per Hour</option>
+            <option value="per_day">Per Day</option>
+            <option value="tiered">Tiered Pricing</option>
+            <option value="package">Package Pricing</option>
+          </select>
+        </label>
 
-      <!-- Additional Fees Component -->
-      <AdditionalFees
-        :venue="venue"
-        :currencySymbol="currencySymbol"
-        @add-fee="addFee"
-        @remove-fee="removeFee"
-      />
+        <!-- Per Hour -->
+        <div v-if="venue.pricing_model === 'per_hour'" class="mt-4">
+          <label class="block">
+            <span class="text-gray-700 font-semibold">Price per Hour ($)</span>
+            <input v-model.number="venue.price_per_hour" type="number" step="0.01" min="0" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required />
+          </label>
+        </div>
 
-      <!-- Additional Features Component -->
-      <AdditionalFeatures
-        :venue="venue"
-        :showAdditionalFeatures="showAdditionalFeatures"
-        :featureCategories="featureCategories"
-        :formatFeatureName="formatFeatureName"
-        v-model:showAdditionalFeatures="showAdditionalFeatures"
-      />
+        <!-- Per Day -->
+        <div v-if="venue.pricing_model === 'per_day'" class="mt-4">
+          <label class="block">
+            <span class="text-gray-700 font-semibold">Price per Day ($)</span>
+            <input v-model.number="venue.price_per_day" type="number" step="0.01" min="0" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required />
+          </label>
+        </div>
+
+        <!-- Tiered Pricing -->
+        <div v-if="venue.pricing_model === 'tiered'" class="mt-4">
+          <div v-for="(tier, index) in venue.pricing_tiers" :key="index" class="mb-4 p-4 border rounded">
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Condition (e.g., 'Weekdays 9-5', '50+ guests')</span>
+              <input v-model="tier.condition" type="text" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required />
+            </label>
+            <label class="block mt-2">
+              <span class="text-gray-700 font-semibold">Rate ($)</span>
+              <input v-model.number="tier.rate" type="number" step="0.01" min="0" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required />
+            </label>
+            <button type="button" @click="removeTier(index)" class="mt-2 text-red-600 hover:underline">Remove Tier</button>
+          </div>
+          <button type="button" @click="addTier" class="text-blue-600 hover:underline">Add Tier</button>
+        </div>
+
+        <!-- Package Pricing -->
+        <div v-if="venue.pricing_model === 'package'" class="mt-4">
+          <div v-for="(pkg, index) in venue.pricing_packages" :key="index" class="mb-4 p-4 border rounded">
+            <label class="block">
+              <span class="text-gray-700 font-semibold">Package Name</span>
+              <input v-model="pkg.name" type="text" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required />
+            </label>
+            <div class="mt-2">
+              <span class="text-gray-700 font-semibold">Included Facilities</span>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1">
+                <label v-for="facility in allFacilitiesOptions" :key="facility" class="flex items-center space-x-2">
+                  <input type="checkbox" v-model="pkg.facilities" :value="facility" class="rounded" />
+                  <i :class="facilityIcons[facility]" class="fa-lg text-blue-600"></i>
+                  <span class="text-gray-700">{{ formatFeatureName(facility) }}</span>
+                </label>
+              </div>
+            </div>
+            <label class="block mt-2">
+              <span class="text-gray-700 font-semibold">Package Price ($)</span>
+              <input v-model.number="pkg.price" type="number" step="0.01" min="0" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required />
+            </label>
+            <button type="button" @click="removePackage(index)" class="mt-2 text-red-600 hover:underline">Remove Package</button>
+          </div>
+          <button type="button" @click="addPackage" class="text-blue-600 hover:underline">Add Package</button>
+        </div>
+
+        <!-- Additional Pricing Details -->
+        <div class="mt-4">
+          <label class="flex items-center space-x-2">
+            <input type="checkbox" v-model="venue.deposit_required" class="rounded" />
+            <span class="text-gray-700 font-semibold">Deposit Required</span>
+          </label>
+          <div v-if="venue.deposit_required" class="mt-2 flex space-x-4">
+            <label class="block flex-1">
+              <span class="text-gray-700 font-semibold">Deposit Amount ($)</span>
+              <input v-model.number="venue.deposit_amount" type="number" step="0.01" min="0" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required />
+            </label>
+            <label class="block flex-1">
+              <span class="text-gray-700 font-semibold">Deposit Percentage (%)</span>
+              <input v-model.number="venue.deposit_percentage" type="number" step="0.01" min="0" max="100" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" />
+            </label>
+          </div>
+        </div>
+        <label class="block mt-4">
+          <span class="text-gray-700 font-semibold">Cancellation Policy</span>
+          <textarea v-model="venue.cancellation_policy" rows="3" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" placeholder="e.g., '50% refund if canceled 7 days prior'"></textarea>
+        </label>
+        <div class="mt-4">
+          <span class="text-gray-700 font-semibold">Additional Fees</span>
+          <div v-for="(fee, index) in venue.additional_fees" :key="index" class="mt-2 flex space-x-4">
+            <label class="flex-1">
+              <span class="text-gray-700">Fee Name</span>
+              <input v-model="fee.name" type="text" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required />
+            </label>
+            <label class="flex-1">
+              <span class="text-gray-700">Amount ($)</span>
+              <input v-model.number="fee.amount" type="number" step="0.01" min="0" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200" required />
+            </label>
+            <button type="button" @click="removeFee(index)" class="mt-6 text-red-600 hover:underline">Remove</button>
+          </div>
+          <button type="button" @click="addFee" class="mt-2 text-blue-600 hover:underline">Add Fee</button>
+        </div>
+      </div>
+
+      <!-- Additional Features -->
+      <div class="mt-4">
+        <label class="flex items-center space-x-2">
+          <input type="checkbox" v-model="showAdditionalFeatures" class="rounded" />
+          <span class="text-gray-700 font-semibold">Include Additional Features</span>
+        </label>
+      </div>
+      <div v-if="showAdditionalFeatures">
+        <div v-for="category in featureCategories" :key="category.name" class="mt-6 p-4 bg-gray-50 rounded">
+          <h3 class="text-lg font-semibold text-gray-700">{{ category.name }}</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+            <label v-for="feature in category.features" :key="feature.name" class="flex items-center space-x-2">
+              <input :type="feature.type === 'checkbox' ? 'checkbox' : 'number'" v-model="venue[feature.name]" class="rounded" :min="feature.type === 'number' ? 0 : null" />
+              <i :class="feature.icon" class="fa-lg text-blue-600"></i>
+              <span class="text-gray-700">{{ formatFeatureName(feature.name) }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
 
       <!-- Submit Button -->
-      <button type="submit" class="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-        Create Venue
-      </button>
+      <button type="submit" class="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Create Venue</button>
     </form>
   </div>
 </template>
 
 <script>
-//Import components for form fields
-import BasicInformation from './CreateVenue/BasicInformation.vue';
-import VenueFacilities from './CreateVenue/VenueFacilities.vue';
-import VenuePricing from './CreateVenue/VenuePricing.vue';
-import AdditionalFees from './CreateVenue/AdditionalFees.vue';
-import AdditionalFeatures from './CreateVenue/AdditionalFeatures.vue';
-
 export default {
-  name: 'CreateVenue',
-  components: {
-    BasicInformation,
-    VenueFacilities,
-    VenuePricing,
-    AdditionalFees,
-    AdditionalFeatures,
-  },
   data() {
     return {
       venue: {
         name: '',
         type: '',
-        currency: 'USD',
         facilities: [],
         pricing_model: '',
         price_per_hour: null,
         price_per_day: null,
-        price_per_week: null,
-        price_per_month: null,
-        per_event_price: null,
-        per_event_description: '',
-        price_per_person: null,
-        min_guests: null,
-        max_guests: null,
         pricing_tiers: [],
         pricing_packages: [],
-        subscription_plans: [],
         deposit_required: false,
         deposit_amount: null,
         deposit_percentage: null,
@@ -124,15 +216,6 @@ export default {
         recycling_bins: 0, composting: false, rainwater_harvesting: false,
       },
       showAdditionalFeatures: false,
-       availableCurrencies: [
-      { code: 'USD', symbol: '$' },
-      { code: 'EUR', symbol: '€' },
-      { code: 'GBP', symbol: '£' },
-      { code: 'JPY', symbol: '¥' },
-      { code: 'CAD', symbol: 'C$' },
-      { code: 'AUD', symbol: 'A$' },
-      // Add more currencies as needed
-    ],
       venueRequirements: {
         cafe: { required: ['tables', 'chairs', 'restrooms', 'coffee_machine'], optional: ['wifi', 'outdoor_seating', 'pastry_display', 'cash_register', 'barista_station', 'music_system'] },
         restaurant: { required: ['tables', 'chairs', 'kitchen', 'restrooms'], optional: ['bar', 'private_dining_rooms', 'outdoor_seating', 'wine_cellar', 'live_music_stage', 'valet_parking'] },
@@ -252,7 +335,7 @@ export default {
           { name: 'buffet_setup', type: 'checkbox', icon: 'fas fa-hamburger' },
         ]},
         { name: 'Entertainment Options', features: [
-          { name: 'live_music', type: 'checkbox' , icon: 'fas fa-music' },
+          { name: 'live_music', type: 'checkbox', icon: 'fas fa-music' },
           { name: 'dj_booth', type: 'checkbox', icon: 'fas fa-headphones' },
           { name: 'karaoke', type: 'checkbox', icon: 'fas fa-microphone' },
           { name: 'dance_floor', type: 'checkbox', icon: 'fas fa-shoe-prints' },
@@ -307,7 +390,7 @@ export default {
           { name: 'cleaning_crew', type: 'number', icon: 'fas fa-broom' },
         ]},
         { name: 'Cultural and Spiritual', features: [
-          { name: 'meditation_room', type: 'checkbox', icon: 'fas fa-om' },
+          { name: 'meditation_room', type: 'checkbox', icon: 'fas fa-om' }, // needs to replaced
           { name: 'prayer_room', type: 'checkbox', icon: 'fas fa-pray' },
           { name: 'cultural_artifacts', type: 'checkbox', icon: 'fas fa-landmark' },
         ]},
@@ -340,58 +423,26 @@ export default {
     };
   },
   computed: {
-  requiredFacilities() {
-  if (this.venue.type === 'custom') {
-    const allRequired = new Set();
-    Object.values(this.venueRequirements).forEach(req => {
-      req.required.forEach(f => allRequired.add(f));
-    });
-    return Array.from(allRequired);
-  }
-  return this.venue.type ? this.venueRequirements[this.venue.type].required : [];
-},
-optionalFacilities() {
-  if (this.venue.type === 'custom') {
-    const allOptional = new Set();
-    Object.values(this.venueRequirements).forEach(req => {
-      req.optional.forEach(f => allOptional.add(f));
-    });
-    return Array.from(allOptional);
-  }
-  return this.venue.type ? this.venueRequirements[this.venue.type].optional : [];
-},
-  allFacilitiesOptions() {
-    if (this.venue.type === 'custom') {
-      const allFacilities = new Set();
-      Object.values(this.venueRequirements).forEach(req => {
-        req.required.forEach(f => allFacilities.add(f));
-        req.optional.forEach(f => allFacilities.add(f));
-      });
-      return Array.from(allFacilities);
-    }
-    return this.venue.type ? [...this.venueRequirements[this.venue.type].required, ...this.venueRequirements[this.venue.type].optional] : [];
-  },
-    currencySymbol() {
-      // Simple currency symbol mapping, can be extended
-      const symbols = { USD: '$', EUR: '€', GBP: '£' };
-      return symbols[this.venue.currency] || this.venue.currency;
+    requiredFacilities() {
+      return this.venue.type ? this.venueRequirements[this.venue.type].required : [];
     },
-      },
-      methods: {
-        formatTypeName(type) {
-          return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        },
-        formatFeatureName(name) {
-          return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        },
-      updateFacilities() {
-        if (this.venue.type === 'custom') {
-          // Reset facilities to empty array so user can select what they want
-          this.venue.facilities = [];
-        } else {
-          this.venue.facilities = this.requiredFacilities;
-        }
-      },
+    optionalFacilities() {
+      return this.venue.type ? this.venueRequirements[this.venue.type].optional : [];
+    },
+    allFacilitiesOptions() {
+      return this.venue.type ? [...this.venueRequirements[this.venue.type].required, ...this.venueRequirements[this.venue.type].optional] : [];
+    },
+  },
+  methods: {
+    formatTypeName(type) {
+      return type.replace('_', ' ').replace(/\w+/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+    },
+    formatFeatureName(name) {
+      return name.replace('_', ' ').replace(/\w+/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+    },
+    updateFacilities() {
+      this.venue.facilities = [];
+    },
     addTier() {
       this.venue.pricing_tiers.push({ condition: '', rate: null });
     },
@@ -404,12 +455,6 @@ optionalFacilities() {
     removePackage(index) {
       this.venue.pricing_packages.splice(index, 1);
     },
-    addSubscriptionPlan() {
-      this.venue.subscription_plans.push({ name: '', price: null, billing_period: 'monthly', benefits: '' });
-    },
-    removeSubscriptionPlan(index) {
-      this.venue.subscription_plans.splice(index, 1);
-    },
     addFee() {
       this.venue.additional_fees.push({ name: '', amount: null });
     },
@@ -420,43 +465,16 @@ optionalFacilities() {
       const formData = new FormData();
       for (const [key, value] of Object.entries(this.venue)) {
         if (key === 'facilities') {
-          // Append facilities as JSON string
-          const facilitiesSet = new Set();
-          this.requiredFacilities.forEach(f => facilitiesSet.add(f));
-          value.forEach(f => facilitiesSet.add(f));
-          formData.append('facilities', JSON.stringify(Array.from(facilitiesSet)));
-        } else if (key === 'pricing_tiers' || key === 'pricing_packages' || key === 'subscription_plans' || key === 'additional_fees') {
+          this.requiredFacilities.forEach(f => formData.append('facilities[]', f));
+          value.forEach(f => formData.append('facilities[]', f));
+        } else if (key === 'pricing_tiers' || key === 'pricing_packages' || key === 'additional_fees') {
           formData.append(key, JSON.stringify(value));
         } else {
-          // Append only if value is not null or empty string
-          if (value !== null && value !== '') {
-            // Convert numeric strings to numbers
-          if (typeof value === 'string') {
-            if (value.toLowerCase() === 'true') {
-              formData.append(key, true);
-            } else if (value.toLowerCase() === 'false') {
-              formData.append(key, false);
-            } else if (!isNaN(value) && value.trim() !== '') {
-              formData.append(key, Number(value));
-            } else {
-              formData.append(key, value);
-            }
-          } else {
-            formData.append(key, value);
-          }
-          }
+          formData.append(key, value);
         }
       }
       console.log('Submitting venue:', Object.fromEntries(formData));
-      // Send POST request to API route /api/venues
-      this.$axios.post('/api/venues', formData)
-        .then(response => {
-          console.log('Venue created successfully:', response.data);
-          // Optionally reset form or redirect
-        })
-        .catch(error => {
-          console.error('Error creating venue:', error.response || error);
-        });
+      // API call here
     },
   },
 };
@@ -465,3 +483,4 @@ optionalFacilities() {
 <style>
 /* Assuming Font Awesome and Tailwind CSS are included in the project */
 </style>
+<!-- Price model needs re adjustments, -->

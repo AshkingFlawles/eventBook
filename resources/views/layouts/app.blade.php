@@ -27,7 +27,9 @@
     <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/favico.js/0.3.10/favico.ico" sizes="any" />
     <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/favico.js/0.3.10/favico-32x32.png" sizes="32x32" type="image/png" />
     <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/favico.js/0.3.10/favico-16x16.png" sizes="16x16" type="image/png" />
-
+    
+    <!-- XLSX Library for Excel file handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div id="app">

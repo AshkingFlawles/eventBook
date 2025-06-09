@@ -1,20 +1,19 @@
 <template>
-  <!-- Sidebar container with fixed width and styling -->
-  <div class="w-64 bg-white shadow-md h-full p-4">
-    <!-- Dashboard title -->
-    <h2 class="text-xl font-bold mb-6">Dashboard</h2>
+  <div class="w-64 bg-white shadow-md h-full p-4 mt-28">
+    <h2 class="text-xl font-bold mb-6">Dashboard Menu</h2>
     <ul>
-      <!-- Loop through menu items and render each as a clickable list item -->
       <li
         v-for="item in menuItems"
         :key="item.name"
-        @click="$emit('select', item.name)" 
+        @click="selectItem(item.name)"
         :class="[
-          'cursor-pointer p-2 rounded mb-2',  /* Base styles for list items */
-          selected === item.name ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-blue-100'  /* Highlight selected item */
+          'cursor-pointer p-2 rounded mb-2',
+          selected === item.name
+            ? 'bg-blue-500 text-white'
+            : 'text-gray-700 hover:bg-blue-100'
         ]"
       >
-        {{ item.label }} <!-- Display menu label -->
+        {{ item.label }}
       </li>
     </ul>
   </div>
@@ -22,8 +21,8 @@
 
 <script>
 export default {
+  name: 'Sidebar',
   props: {
-    // The currently selected menu item name, required for highlighting
     selected: {
       type: String,
       required: true
@@ -31,18 +30,26 @@ export default {
   },
   data() {
     return {
-      // Define the sidebar menu items with internal names and display labels
       menuItems: [
+        { name: 'dashboardHome', label: 'Dashboard Home' },
         { name: 'createVenue', label: 'Create Venue' },
         { name: 'manageEvents', label: 'Manage Events' },
-        { name: 'createEvent', label: 'Create Event' },
-        { name: 'dashboardHome', label: 'Dashboard Home' }
+        { name: 'manageVenues', label: 'Manage Venues' },
+        { name: 'createEvent', label: 'Create Event' }
       ]
     };
+  },
+  methods: {
+    selectItem(itemName) {
+      this.$emit('select', itemName);
+    }
   }
 };
 </script>
 
 <style scoped>
-/* Scoped styles can be added here if needed */
+/* Add some hover effects */
+li:hover {
+  transition: background-color 0.3s ease;
+}
 </style>

@@ -8,34 +8,120 @@ use Illuminate\Database\Eloquent\Model;
 class Venue extends Model
 {
     use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     protected $fillable = [
-        'name', 'description', 'location', 'address', 'city', 'state', 'country', 'zip_code',
-        'latitude', 'longitude', 'capacity', 'price_per_hour', 'venue_type', 'custom_venue_type', 'available_from', 'available_to',
-        'owner_id', 'floor_area_sqft', 'layout_type', 'contact_email', 'contact_phone', 'photo_gallery', 'video_tour_url',
-        'minimum_booking_hours', 'max_booking_hours', 'pricing_model', 'security_deposit',
-        'restrooms_available', 'air_conditioning', 'heating', 'security_staff', 'internet_access',
-        'status', 'menu_file',
-        'parking_available', 'wheelchair_accessible', 'kitchen_facilities', 'catering_available',
-        'sound_system', 'stage_available', 'outdoor_area', 'decor_services', 'lighting_options',
-        'seating_arrangement_options', 'custom_rules', 'booking_policy', 'chairs', 'tables',
+        // Basic Information
+        'name', 'description', 'venue_type', 'currency',
+        
+        // Location
+        'address', 'city', 'state', 'postal_code', 'country', 'latitude', 'longitude',
+        
+        // Capacity and Space
+        'min_capacity', 'max_capacity', 'area_sqft', 'ceiling_height',
+        
+        // Pricing
+        'pricing_model', 'price_per_hour', 'price_per_day', 'price_per_week', 'price_per_month',
+        'per_event_price', 'price_per_person', 'min_guests', 'max_guests',
+        'has_deposit', 'deposit_amount', 'deposit_percentage', 'pricing_notes',
+        
+        // Availability
+        'opening_time', 'closing_time', 'unavailable_days',
+        
+        // Contact Information
+        'contact_name', 'contact_email', 'contact_phone', 'website',
+        
+        // Media
+        'images', 'video_tour_url', 'virtual_tour_url',
+        
+        // Additional Features (JSON fields)
+        'facilities', 'pricing_tiers', 'pricing_packages', 'subscription_plans',
+        'additional_fees', 'features',
+        
+        // Status
+        'status', 'is_active', 'is_featured', 'featured_until', 'user_id'
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
     protected $casts = [
-        'parking_available' => 'boolean',
-        'wheelchair_accessible' => 'boolean',
-        'kitchen_facilities' => 'boolean',
-        'catering_available' => 'boolean',
-        'sound_system' => 'boolean',
-        'stage_available' => 'boolean',
-        'outdoor_area' => 'boolean',
-        'decor_services' => 'boolean',
-        'restrooms_available' => 'boolean',
-        'air_conditioning' => 'boolean',
-        'heating' => 'boolean',
-        'security_staff' => 'boolean',
-        'internet_access' => 'boolean',
-        'photo_gallery' => 'array',
-        'available_from' => 'datetime:H:i',
-        'available_to' => 'datetime:H:i',
+        // JSON fields
+        
+        // JSON Arrays
+        'unavailable_days' => 'array',
+        'images' => 'array',
+        'facilities' => 'array',
+        'pricing_tiers' => 'array',
+        'pricing_packages' => 'array',
+        'subscription_plans' => 'array',
+        'additional_fees' => 'array',
+        'features' => 'array',
+        
+        // Dates
+        'opening_time' => 'datetime:H:i',
+        'closing_time' => 'datetime:H:i',
+        'featured_until' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
+    
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+    
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($venue) {
+            $venue->slug = \Illuminate\Support\Str::slug($venue->name);
+        });
+        
+        static::updating(function ($venue) {
+            $venue->slug = \Illuminate\Support\Str::slug($venue->name);
+        });
+    }
+    
+    /**
+     * Scope a query to only include active venues.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+    
+    /**
+     * Scope a query to only include featured venues.
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true)
+                    ->where(function($q) {
+                        $q->whereNull('featured_until')
+                          ->orWhere('featured_until', '>', now());
+                    });
+    }
+
+    /**
+     * Get the user that owns the venue.
+     */
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
 }

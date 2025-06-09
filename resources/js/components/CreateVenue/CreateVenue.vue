@@ -3,12 +3,12 @@
     <h1 class="text-2xl font-bold mb-4">Create New Venue</h1>
     <form @submit.prevent="submitVenue" class="space-y-6">
       <!-- Basic Information Component -->
-<BasicInformation
-  :venue="venue"
-  :venueTypeOptions="[...Object.keys(venueRequirements), 'custom']"
-  :availableCurrencies="availableCurrencies"
-  @update-facilities="updateFacilities"
-/>
+      <BasicInformation
+        :venue="venue"
+        :venueTypeOptions="Object.keys(venueRequirements)"
+        :availableCurrencies="availableCurrencies"
+        @update-facilities="updateFacilities"
+      />
 
       <!-- Venue Facilities Component -->
       <VenueFacilities
@@ -60,12 +60,11 @@
 </template>
 
 <script>
-//Import components for form fields
-import BasicInformation from './CreateVenue/BasicInformation.vue';
-import VenueFacilities from './CreateVenue/VenueFacilities.vue';
-import VenuePricing from './CreateVenue/VenuePricing.vue';
-import AdditionalFees from './CreateVenue/AdditionalFees.vue';
-import AdditionalFeatures from './CreateVenue/AdditionalFeatures.vue';
+import BasicInformation from './BasicInformation.vue';
+import VenueFacilities from './VenueFacilities.vue';
+import VenuePricing from './VenuePricing.vue';
+import AdditionalFees from './AdditionalFees.vue';
+import AdditionalFeatures from './AdditionalFeatures.vue';
 
 export default {
   name: 'CreateVenue',
@@ -124,15 +123,6 @@ export default {
         recycling_bins: 0, composting: false, rainwater_harvesting: false,
       },
       showAdditionalFeatures: false,
-       availableCurrencies: [
-      { code: 'USD', symbol: '$' },
-      { code: 'EUR', symbol: '€' },
-      { code: 'GBP', symbol: '£' },
-      { code: 'JPY', symbol: '¥' },
-      { code: 'CAD', symbol: 'C$' },
-      { code: 'AUD', symbol: 'A$' },
-      // Add more currencies as needed
-    ],
       venueRequirements: {
         cafe: { required: ['tables', 'chairs', 'restrooms', 'coffee_machine'], optional: ['wifi', 'outdoor_seating', 'pastry_display', 'cash_register', 'barista_station', 'music_system'] },
         restaurant: { required: ['tables', 'chairs', 'kitchen', 'restrooms'], optional: ['bar', 'private_dining_rooms', 'outdoor_seating', 'wine_cellar', 'live_music_stage', 'valet_parking'] },
@@ -340,58 +330,31 @@ export default {
     };
   },
   computed: {
-  requiredFacilities() {
-  if (this.venue.type === 'custom') {
-    const allRequired = new Set();
-    Object.values(this.venueRequirements).forEach(req => {
-      req.required.forEach(f => allRequired.add(f));
-    });
-    return Array.from(allRequired);
-  }
-  return this.venue.type ? this.venueRequirements[this.venue.type].required : [];
-},
-optionalFacilities() {
-  if (this.venue.type === 'custom') {
-    const allOptional = new Set();
-    Object.values(this.venueRequirements).forEach(req => {
-      req.optional.forEach(f => allOptional.add(f));
-    });
-    return Array.from(allOptional);
-  }
-  return this.venue.type ? this.venueRequirements[this.venue.type].optional : [];
-},
-  allFacilitiesOptions() {
-    if (this.venue.type === 'custom') {
-      const allFacilities = new Set();
-      Object.values(this.venueRequirements).forEach(req => {
-        req.required.forEach(f => allFacilities.add(f));
-        req.optional.forEach(f => allFacilities.add(f));
-      });
-      return Array.from(allFacilities);
-    }
-    return this.venue.type ? [...this.venueRequirements[this.venue.type].required, ...this.venueRequirements[this.venue.type].optional] : [];
-  },
+    requiredFacilities() {
+      return this.venue.type ? this.venueRequirements[this.venue.type].required : [];
+    },
+    optionalFacilities() {
+      return this.venue.type ? this.venueRequirements[this.venue.type].optional : [];
+    },
+    allFacilitiesOptions() {
+      return this.venue.type ? [...this.venueRequirements[this.venue.type].required, ...this.venueRequirements[this.venue.type].optional] : [];
+    },
     currencySymbol() {
       // Simple currency symbol mapping, can be extended
       const symbols = { USD: '$', EUR: '€', GBP: '£' };
       return symbols[this.venue.currency] || this.venue.currency;
     },
-      },
-      methods: {
-        formatTypeName(type) {
-          return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        },
-        formatFeatureName(name) {
-          return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        },
-      updateFacilities() {
-        if (this.venue.type === 'custom') {
-          // Reset facilities to empty array so user can select what they want
-          this.venue.facilities = [];
-        } else {
-          this.venue.facilities = this.requiredFacilities;
-        }
-      },
+  },
+  methods: {
+    formatTypeName(type) {
+      return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    },
+    formatFeatureName(name) {
+      return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    },
+    updateFacilities() {
+      this.venue.facilities = [];
+    },
     addTier() {
       this.venue.pricing_tiers.push({ condition: '', rate: null });
     },
@@ -420,43 +383,16 @@ optionalFacilities() {
       const formData = new FormData();
       for (const [key, value] of Object.entries(this.venue)) {
         if (key === 'facilities') {
-          // Append facilities as JSON string
-          const facilitiesSet = new Set();
-          this.requiredFacilities.forEach(f => facilitiesSet.add(f));
-          value.forEach(f => facilitiesSet.add(f));
-          formData.append('facilities', JSON.stringify(Array.from(facilitiesSet)));
+          this.requiredFacilities.forEach(f => formData.append('facilities[]', f));
+          value.forEach(f => formData.append('facilities[]', f));
         } else if (key === 'pricing_tiers' || key === 'pricing_packages' || key === 'subscription_plans' || key === 'additional_fees') {
           formData.append(key, JSON.stringify(value));
         } else {
-          // Append only if value is not null or empty string
-          if (value !== null && value !== '') {
-            // Convert numeric strings to numbers
-          if (typeof value === 'string') {
-            if (value.toLowerCase() === 'true') {
-              formData.append(key, true);
-            } else if (value.toLowerCase() === 'false') {
-              formData.append(key, false);
-            } else if (!isNaN(value) && value.trim() !== '') {
-              formData.append(key, Number(value));
-            } else {
-              formData.append(key, value);
-            }
-          } else {
-            formData.append(key, value);
-          }
-          }
+          formData.append(key, value);
         }
       }
       console.log('Submitting venue:', Object.fromEntries(formData));
-      // Send POST request to API route /api/venues
-      this.$axios.post('/api/venues', formData)
-        .then(response => {
-          console.log('Venue created successfully:', response.data);
-          // Optionally reset form or redirect
-        })
-        .catch(error => {
-          console.error('Error creating venue:', error.response || error);
-        });
+      // API call here
     },
   },
 };

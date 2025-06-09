@@ -24,17 +24,20 @@ use Illuminate\Support\Facades\Auth;
 */
 
 // Authentication routes
-Auth::routes(); // Automatically handles authentication routes (login, registration, etc.)
+// Authentication routes
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/api/login', [LoginController::class, 'login'])->middleware('web');
+Route::post('/api/logout', [LoginController::class, 'logout']);
 
 // Public routes
 Route::get('/', function () {
-    return view('welcome'); // Return the welcome view for the home page
+    return redirect()->route('login');
 });
 
-// Routes for authenticated users
+// Protected routes
 Route::middleware(['auth'])->group(function () {
-    // Home route
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home'); // Home page for authenticated users
+    Route::get('/api/dashboard', [DashboardController::class, 'index']);
+    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
     // Venue routes
     Route::resource('venues', VenueController::class)->middleware('role:admin'); // Resource routes for venues, accessible only by admin

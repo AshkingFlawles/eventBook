@@ -15,7 +15,8 @@
 </template>
 
 <script>
-import axios from 'axios'; 
+import api from '../axios';
+
 export default {
   data() {
     return {
@@ -23,22 +24,66 @@ export default {
         email: '',
         password: ''
       },
-      errors: []
+      errors: [],
+      // To check authentication status in Vue:
+      // 1. Using localStorage (if you store user data there):
+      //    - this.$store.state.user - if using Vuex store
+      //    - localStorage.getItem('user') - if storing in localStorage
+      //    - localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null
+      
+      // 2. Using VueX store (if implemented):
+      //    - this.$store.getters.isAuthenticated
+      //    - this.$store.state.user
+      
+      // 3. Using a computed property:
+      //    computed: {
+      //      isAuthenticated() {
+      //        return !!localStorage.getItem('user');
+      //      },
+      //      currentUser() {
+      //        return localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+      //      }
+      //    }
+      
+      // 4. Using a method:
+      //    methods: {
+      //      checkAuth() {
+      //        return !!localStorage.getItem('user');
+      //      },
+      //      getUser() {
+      //        return localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+      //      }
+      //    }
     }
   },
-  
   methods: {
     login() {
-        axios.post('/api/login2', this.form)
-    .then(response => {
-        // Login successful, redirect to dashboard or whatever
-        console.log(response.data);
+      // Get CSRF token from meta tag
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+      
+      api.post('/api/login', this.form, {
+        headers: {
+          'X-CSRF-TOKEN': csrfToken
+        }
+      })
+      .then(response => {
+        // Clear any existing errors
+        this.errors = [];
         
-    })
-    .catch(error => {
-        // Login failed, display error message
-        this.errors = error.response.data.errors;
-    });
+        // Update the UI
+        this.$emit('authenticated', true);
+        
+        // The server will handle the redirect to /api/dashboard
+        window.location.href = '/api/dashboard';
+      })
+      .catch(error => {
+        // Handle error response
+        this.errors = error.response?.data?.message ? [error.response.data.message] : ['Invalid credentials'];
+        console.error('Login error:', error);
+        
+        // Update the UI
+        this.$emit('authenticated', false);
+      });
     }
   }
 }
