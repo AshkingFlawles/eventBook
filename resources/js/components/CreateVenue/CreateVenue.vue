@@ -391,8 +391,28 @@ export default {
           formData.append(key, value);
         }
       }
-      console.log('Submitting venue:', Object.fromEntries(formData));
-      // API call here
+      // Add CSRF token from meta tag
+      const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      fetch('/api/venues', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': token,
+        },
+        body: formData,
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Venue created successfully:', data);
+        // Optionally reset form or redirect
+      })
+      .catch(error => {
+        console.error('Error creating venue:', error);
+      });
     },
   },
 };

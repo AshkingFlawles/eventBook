@@ -101,6 +101,18 @@ export default {
     
     // Watch for authentication changes
     window.addEventListener('storage', this.handleStorageChange);
+
+    // Log user auth details for debugging
+    console.log('Authenticated user:', this.user);
+
+    // Log token for debugging
+    const token = localStorage.getItem('token') || null;
+    console.log('Auth token:', token);
+
+    // Also log token from axios default headers if set
+    if (this.$axios && this.$axios.defaults.headers.common['Authorization']) {
+      console.log('Axios Authorization header:', this.$axios.defaults.headers.common['Authorization']);
+    }
   },
   created() {
     // Initialize user from Laravel global variable
@@ -108,6 +120,18 @@ export default {
     
     // Watch for authentication changes
     window.addEventListener('storage', this.handleStorageChange);
+
+    // Log user auth details for debugging
+    console.log('Authenticated user:', this.user);
+
+    // Log token for debugging
+    const token = localStorage.getItem('token') || null;
+    console.log('Auth token:', token);
+
+    // Also log token from axios default headers if set
+    if (this.$axios && this.$axios.defaults.headers.common['Authorization']) {
+      console.log('Axios Authorization header:', this.$axios.defaults.headers.common['Authorization']);
+    }
   },
   beforeUnmount() {
     window.removeEventListener('storage', this.handleStorageChange);
