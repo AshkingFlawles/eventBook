@@ -1,10 +1,7 @@
 <template>
-  <!-- Container for managing events -->
   <div class="p-6 bg-white rounded shadow-md max-w-4xl mx-auto">
     <h1 class="text-2xl font-bold mb-4">Manage Events</h1>
-    <!-- Loading indicator -->
     <div v-if="loading" class="text-gray-500">Loading events...</div>
-    <!-- Events table -->
     <table v-else class="min-w-full border border-gray-300 rounded">
       <thead>
         <tr class="bg-gray-100">
@@ -26,18 +23,32 @@
         </tr>
       </tbody>
     </table>
-    <!-- Message display -->
     <div v-if="message" class="mt-4 p-3 bg-green-100 text-green-700 rounded">{{ message }}</div>
+
+    <!-- Edit Event Modal -->
+    <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded shadow-lg p-6 w-full max-w-3xl relative">
+        <button @click="closeEditModal" class="absolute top-2 right-2 text-gray-600 hover:text-gray-900">&times;</button>
+        <CreateEvent :eventToEdit="eventToEdit" @eventSaved="onEventUpdated" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import CreateEvent from './CreateEvent.vue';
+
 export default {
+  components: {
+    CreateEvent,
+  },
   data() {
     return {
       events: [], // List of events
       loading: true, // Loading state
-      message: '' // Success or error message
+      message: '', // Success or error message
+      showEditModal: false,
+      eventToEdit: null,
     };
   },
   async created() {
@@ -48,16 +59,28 @@ export default {
     async fetchEvents() {
       try {
         const response = await this.$axios.get('/api/events');
-        this.events = response.data;
+        this.events = response.data.data;
       } catch (error) {
         console.error(error);
       } finally {
         this.loading = false;
       }
     },
-    // Placeholder for editing event
+    // Open edit modal with selected event
     editEvent(event) {
-      alert('Edit event: ' + event.name);
+      this.eventToEdit = { ...event };
+      this.showEditModal = true;
+    },
+    // Close edit modal
+    closeEditModal() {
+      this.showEditModal = false;
+      this.eventToEdit = null;
+    },
+    // Handle event updated from modal
+    async onEventUpdated() {
+      this.message = 'Event updated successfully.';
+      this.closeEditModal();
+      await this.fetchEvents();
     },
     // Delete event by ID
     async deleteEvent(id) {
@@ -74,4 +97,3 @@ export default {
   }
 };
 </script>
-
