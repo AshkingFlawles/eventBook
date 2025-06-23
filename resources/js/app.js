@@ -89,10 +89,10 @@ import Calendar from './components/Calendar.vue';
 import ImageUploader from './components/ImageUploader.vue';
 import FileUploader from './components/FileUploader.vue';
 
-// Add these missing imports
 import AdminRegisterForm from './components/AdminRegisterForm.vue';
 import Login from './components/Login.vue';
 import Dashboard from './components/Dashboard.vue';
+import Homepage from './components/HomePage.vue';
 
 // Get CSRF token
 const token = document.head.querySelector('meta[name="csrf-token"]');
@@ -141,6 +141,7 @@ const initializeApps = () => {
     
     // Mount Login
     mountComponent('#loginapp', Login);
+    mountComponent('#HomePage', Homepage);
     
     // Mount Dashboard
     mountComponent('#dashboard', Dashboard);

@@ -28,4 +28,7 @@ Route::get('/booking-trends', [BookingController::class, 'bookingTrends']);
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
+
+    // Booking resource routes for authenticated users
+    Route::apiResource('bookings', BookingController::class);
 });
