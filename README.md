@@ -62,17 +62,7 @@ Edit the `.env` file to configure your database and other settings as needed.
 php artisan migrate
 ```
 
-### 7. Run additional artisan commands (if any)
-
-If you have any queued jobs or other services, start them as needed. For example:
-
-```bash
-php artisan queue:work
-```
-
-*(Optional, depending on your app requirements)*
-
-### 8. Start the development servers
+### 7. Start the development servers
 
 Run the Laravel backend server (optional if you use a separate server):
 
@@ -86,7 +76,7 @@ Run the frontend development server (Vite):
 npm run dev
 ```
 
-### 9. Access the application
+### 8. Access the application
 
 Open your browser and navigate to:
 
