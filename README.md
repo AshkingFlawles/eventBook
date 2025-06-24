@@ -7,8 +7,7 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
-# EventBook Laravel Project
+## EventBook Laravel Project
 
 This is a Laravel-based web application with a Vue.js frontend using Vite.
 
