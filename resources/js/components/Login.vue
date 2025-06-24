@@ -69,6 +69,22 @@ export default {
       .then(response => {
         // Clear any existing errors
         this.errors = [];
+
+        // Log full response for debugging
+        console.log('Login response:', response);
+
+        // Log CSRF token for debugging
+        console.log('CSRF Token:', csrfToken);
+
+        // Store token and user info in localStorage
+        if (response.data.token) {
+          localStorage.setItem('token', response.data.token);
+          console.log('Auth Token:', response.data.token);
+        }
+        if (response.data.user) {
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          console.log('User Info:', response.data.user);
+        }
         
         // Update the UI
         this.$emit('authenticated', true);

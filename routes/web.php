@@ -24,9 +24,10 @@ use Illuminate\Support\Facades\Auth;
 */
 
 // Authentication routes
-// Authentication routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+/*
 Route::post('/api/login', [LoginController::class, 'login'])->middleware('web');
+*/
 Route::post('/api/logout', [LoginController::class, 'logout']);
 
 // Public routes
@@ -64,14 +65,6 @@ Route::prefix('api')->group(function () {
     })->name('register');
 });
 
-// Dashboard routes
-// Route::prefix('api')->group(function () {
-//     Route::get('/', function () {
-//         return view('dashboard'); // Return the dashboard view
-//     })->name('dashboard');
-// });
-
-
 // Registration route for API
 Route::prefix('api')->group(function () {
     Route::post('/testreg', [RegisterController::class, 'register'])->middleware('api'); // Call register method in RegisterController
@@ -83,16 +76,12 @@ Route::prefix('api')->group(function () {
     })->name('adminRegisterForm');
 });
 
-
-
 //Dashboard 
 Route::prefix('api')->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard'); // Return the dashboard view
     })->name('dashboard');
 });
-
-
 
 //Login 
 Route::prefix('api')->group(function () {
@@ -104,27 +93,6 @@ Route::prefix('api')->group(function () {
 Route::prefix('api')->group(function () {
     Route::get('/int', [UserTestController::class, 'index']);
 });
-
-//Venue store
-Route::prefix('api')->group(function () {
-    Route::post('/venues', [VenueController::class, 'store'])->name('venues.store');
-});
-//Venue index
-Route::prefix('api')->group(function () {
-    Route::get('/venues', [VenueController::class, 'index'])->name('venues.index');
-});
-
-// Event store
-Route::prefix('api')->group(function () {
-    Route::post('/events', [EventController::class, 'store'])->name('events.store');
-});
-
-//Event index
-Route::prefix('api')->group(function () {
-    Route::get('/events', [EventController::class, 'index'])->name('events.index');
-});
-
-
 
 Route::get('/user-table', function () {
     return view('usertest');
