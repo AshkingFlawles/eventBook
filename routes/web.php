@@ -31,8 +31,8 @@ Route::post('/api/login', [LoginController::class, 'login'])->middleware('web');
 Route::post('/api/logout', [LoginController::class, 'logout']);
 
 // Public routes
-Route::get('/', function () {
-    return redirect()->route('login');
+Route::get('api/home', function () {
+    return view('home');
 });
 
 // Protected routes
