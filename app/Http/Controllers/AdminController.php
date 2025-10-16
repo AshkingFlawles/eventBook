@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User; // assuming your User model is in App\Models namespace
-use App\Models\Event; // assuming your Event model is in App\Models namespace
-use App\Models\Booking; // assuming your Booking model is in App\Models namespace
-use App\Models\Venue; // assuming your Booking model is in App\Models namespace
+use App\Models\User; 
+use App\Models\Event; 
+use App\Models\Booking; 
+use App\Models\Venue; 
 
 class AdminController extends Controller
 {
